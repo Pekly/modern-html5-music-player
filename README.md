@@ -12,7 +12,7 @@ It features a clean, modern UI, real-time visualizer, and full playback controls
 ---
 
 ## 🖼️ Preview  
-![Music Player Preview](https://raw.githubusercontent.com/Pekly/modern-html5-music-player/main/assets/preview1.png)
+![Music Player Preview](https://raw.githubusercontent.com/Pekly/modern-html5-music-player/main/assets/preview_banner.jpg)
 
 ---
 ## ✨ Features
