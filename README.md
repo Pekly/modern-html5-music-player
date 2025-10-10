@@ -7,7 +7,7 @@
 A self-contained, open-source music player designed to be embedded anywhere.  
 It features a clean, modern UI, real-time visualizer, and full playback controls — all without ads or external dependencies.
 
-🎧 **[Live Demo →]([https://pekly.neocities.org/modern-html5-music-player](https://pekly.github.io/modern-html5-music-player/))**  
+🎧 **[Live Demo →](https://pekly.github.io/modern-html5-music-player/)**  
 
 ---
 
