@@ -1155,7 +1155,7 @@
                 
                 function initializePlayer() {
                     // Set initial visualizer position
-                    if(player.dom.toggleBtn && player.dom.visualizerCanvas) player.dom.toggleBtn.appendChild(player.dom.visualizerCanvas);
+                    if(player.dom.toggleBtn && player.dom.visualizerCanvas) player.dom.toggleBtn.appendChild(player.dom.visualizerCanvas);if(player.dom.playerBody && player.dom.visualizerCanvas) player.dom.playerBody.insertBefore(player.dom.visualizerCanvas, player.dom.playerBody.firstChild);
 
                     setupThemeSwitcher();
                     setupPromotion();
