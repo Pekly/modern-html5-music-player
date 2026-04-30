@@ -1,20 +1,17 @@
 <!DOCTYPE html>
-<!-- Written by Pekly, Lite Edition-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Embedded Music Player (Lite)</title>
-    <!-- Font Awesome for UI icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        /* --- LITE VARIABLES --- */
         :root {
             --bg-color: #222;
             --player-bg: #1a1a1a;
             --text-main: #fff;
             --text-sub: #aaa;
-            --accent: #1DB954; /* Spotify Green */
+            --accent: #1DB954;
             --border: #333;
             --shadow: 0 4px 12px rgba(0,0,0,0.4);
             --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -31,7 +28,6 @@
             align-items: center;
         }
 
-        /* --- PLAYER CONTAINER (Docked Capsule) --- */
         #music-player {
             position: fixed;
             bottom: 20px;
@@ -44,16 +40,14 @@
             transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
         }
 
-        /* Hidden State: Moves left, leaving only the toggle tab visible */
         #music-player.hidden {
-            transform: translateX(calc(-100% + 40px)); /* Keep 40px (button width) visible */
+            transform: translateX(calc(-100% + 40px));
         }
 
-        /* --- MAIN BODY --- */
         .player-body {
             background: var(--player-bg);
             border: 1px solid var(--border);
-            border-right: none; /* Merge with toggle btn */
+            border-right: none;
             border-radius: 40px 0 0 40px;
             padding: 8px 15px 8px 8px;
             display: flex;
@@ -63,7 +57,6 @@
             box-sizing: border-box;
         }
 
-        /* Album Art */
         #album-art {
             width: 40px; height: 40px;
             border-radius: 50%;
@@ -73,13 +66,14 @@
             flex-shrink: 0;
         }
 
-        /* Track Info */
         .track-info {
             display: flex;
             flex-direction: column;
             justify-content: center;
-            max-width: 120px;
+            width: 120px;
             line-height: 1.2;
+            overflow: hidden;
+            position: relative;
         }
 
         #track-title {
@@ -87,8 +81,17 @@
             font-size: 0.85rem;
             font-weight: 600;
             white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            display: inline-block;
+        }
+        
+        #track-title.overflowing {
+            animation: marquee 8s linear infinite;
+            padding-right: 40px;
+        }
+        
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
         }
 
         #track-artist {
@@ -98,7 +101,6 @@
             text-overflow: ellipsis;
         }
 
-        /* --- CONTROLS --- */
         .controls {
             display: flex;
             align-items: center;
@@ -133,7 +135,6 @@
             border-color: rgba(255,255,255,0.3);
         }
         
-        /* Volume Slider (Compact) */
         input[type=range] {
             -webkit-appearance: none;
             background: transparent;
@@ -154,14 +155,13 @@
             margin-top: -3.5px;
         }
 
-        /* --- TOGGLE BUTTON (The "Tab") --- */
         #toggle-btn {
             background: var(--player-bg);
             border: 1px solid var(--border);
-            border-left: none; /* Merge with body */
+            border-left: none;
             border-radius: 0 40px 40px 0;
             height: 56px;
-            width: 40px; /* Visible width when hidden */
+            width: 40px;
             display: flex; align-items: center; justify-content: center;
             font-size: 0.9rem;
             padding-right: 2px;
@@ -169,7 +169,6 @@
         }
         #toggle-btn:hover { background: rgba(255,255,255,0.05); }
 
-        /* --- PLAYLIST MODAL (Simple List) --- */
         #playlist-modal {
             position: absolute;
             bottom: 70px; left: 0;
@@ -185,19 +184,50 @@
         }
         #playlist-modal.show { display: block; }
 
+        #playlist-list {
+            counter-reset: track-counter;
+        }
+
         .p-item {
             padding: 10px 15px;
             font-size: 0.85rem;
             border-bottom: 1px solid #333;
             cursor: pointer;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             transition: background 0.2s;
+            counter-increment: track-counter;
         }
+        
+        .p-item::before {
+            content: counter(track-counter) ".";
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            min-width: 16px;
+        }
+        
+        .p-item.active::before {
+            content: "▶";
+            color: var(--accent);
+        }
+
         .p-item:hover { background: rgba(255,255,255,0.1); }
         .p-item.active { color: var(--accent); font-weight: bold; background: rgba(29, 185, 84, 0.1); }
         .p-item:last-child { border-bottom: none; }
+        
+        .p-item-title {
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1;
+        }
 
-        /* Mobile Adjustments */
+        .queue-icon {
+            opacity: 0;
+            color: var(--text-sub);
+            font-size: 0.8rem;
+            padding: 4px;
+        }
+        .p-item:hover .queue-icon { opacity: 1; }
+
         @media (max-width: 600px) {
             #music-player { left: 10px; bottom: 10px; }
             #vol-slider { display: none; }
@@ -208,7 +238,6 @@
 
     <div id="music-player">
         
-        <!-- Main Player Body -->
         <div class="player-body">
             <img id="album-art" src="" alt="Art">
             
@@ -226,12 +255,10 @@
             </div>
         </div>
 
-        <!-- Toggle Tab (Chevron updates dynamically) -->
         <button id="toggle-btn" title="Toggle Player">
             <i class="fas fa-chevron-left"></i>
         </button>
 
-        <!-- Playlist Popup -->
         <div id="playlist-modal">
             <div id="playlist-list"></div>
         </div>
@@ -242,18 +269,15 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Data
-            const songs = [
+            let songs = [
                 { title: 'Resonance', artist: 'Home', url: 'https://od.lk/s/OTdfOTQzNzY2NjFf/HOME%20Resonance.mp3', cover: 'https://f4.bcbits.com/img/a3321951232_10.jpg' },
                 { title: 'Miku', artist: 'Anamanaguchi', url: 'https://od.lk/s/OTdfOTQ0MDAyODdf/Miku%20by%20Anamanaguchi%20Lyrics%20Video.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F379dd3f911ddadfb3da8387069fdfd51.1000x1000x1.png' },
                 { title: 'Memory Reboot', artist: 'VØJ, Narvent', url: 'https://od.lk/s/OTdfOTQzNzY5MjRf/V%C3%98J%20Narvent%20Memory%20Reboot%204K%20Music%20Video.mp3', cover: 'https://i1.sndcdn.com/artworks-8zY79hHzgzoNqx9O-qPGziw-t500x500.jpg' },
                 { title: 'Pretty Girl', artist: 'Clairo', url: 'https://od.lk/s/OTdfOTQzNzY3Mjlf/Clairo%20Pretty%20Girl%20slowed%20reverb.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F188096681dc237e27d7f3e8dcb1a9145.1000x1000x1.jpg' }
             ];
 
-            // State
             let state = { idx: 0, isPlaying: false };
 
-            // Elements (Safely selected)
             const els = {
                 player: document.getElementById('music-player'),
                 audio: document.getElementById('audio-el'),
@@ -284,12 +308,22 @@
                 state.idx = index;
                 const song = songs[index];
                 
-                if(els.title) els.title.textContent = song.title;
+                if(els.title) {
+                    els.title.classList.remove('overflowing');
+                    els.title.textContent = song.title;
+                    requestAnimationFrame(() => {
+                        if (els.title.scrollWidth > els.title.parentElement.offsetWidth) {
+                            els.title.textContent = song.title + ' \u00A0\u00A0\u00A0 ' + song.title;
+                            els.title.classList.add('overflowing');
+                        }
+                    });
+                }
+                
                 if(els.artist) els.artist.textContent = song.artist;
                 if(els.art) els.art.src = song.cover;
                 if(els.audio) els.audio.src = song.url;
 
-                renderPlaylist(); // Update highlighting
+                renderPlaylist(); 
 
                 if(playNow && els.audio) {
                     const playPromise = els.audio.play();
@@ -299,8 +333,7 @@
                                 state.isPlaying = true;
                                 updatePlayIcon();
                             })
-                            .catch(error => {
-                                console.warn("Playback prevented:", error);
+                            .catch(() => {
                                 state.isPlaying = false;
                                 updatePlayIcon();
                             });
@@ -321,7 +354,7 @@
                     if (playPromise !== undefined) {
                         playPromise
                             .then(() => { state.isPlaying = true; updatePlayIcon(); })
-                            .catch(error => console.error("Play error:", error));
+                            .catch(() => {});
                     }
                 } else {
                     els.audio.pause();
@@ -333,20 +366,36 @@
             function updateToggleIcon() {
                 if(!els.toggleBtn || !els.player) return;
                 const isHidden = els.player.classList.contains('hidden');
-                // If hidden, show arrow pointing RIGHT (to expand). If visible, point LEFT (to hide).
                 els.toggleBtn.innerHTML = isHidden ? '<i class="fas fa-chevron-right"></i>' : '<i class="fas fa-chevron-left"></i>';
             }
 
             function renderPlaylist() {
                 if(!els.list) return;
                 els.list.innerHTML = '';
+                
+                const counts = JSON.parse(localStorage.getItem('lite_play_counts') || '{}');
+                
                 songs.forEach((s, i) => {
                     const el = document.createElement('div');
                     el.className = `p-item ${i === state.idx ? 'active' : ''}`;
-                    el.textContent = `${i + 1}. ${s.title}`;
-                    el.onclick = () => {
-                        loadTrack(i, true);
-                        if(els.modal) els.modal.classList.remove('show');
+                    
+                    const playCountHtml = counts[s.url] >= 3 ? `<span style="margin-left:6px;font-size:0.8rem;">🔥</span>` : '';
+                    const queueIconHtml = i !== state.idx ? `<i class="fas fa-level-down-alt queue-icon"></i>` : '';
+                    
+                    el.innerHTML = `<div class="p-item-title">${s.title}${playCountHtml}</div>${queueIconHtml}`;
+                    
+                    el.onclick = (e) => {
+                        if (e.target.classList.contains('queue-icon')) {
+                            e.stopPropagation();
+                            const songToQueue = songs.splice(i, 1)[0];
+                            const insertAt = state.idx + 1;
+                            songs.splice(insertAt, 0, songToQueue);
+                            if (i < state.idx) state.idx--;
+                            renderPlaylist();
+                        } else {
+                            loadTrack(i, true);
+                            if(els.modal) els.modal.classList.remove('show');
+                        }
                     };
                     els.list.appendChild(el);
                 });
@@ -389,10 +438,15 @@
                 }
 
                 if(els.audio) {
-                    els.audio.onended = () => loadTrack(state.idx + 1, true);
+                    els.audio.onended = () => {
+                        const counts = JSON.parse(localStorage.getItem('lite_play_counts') || '{}');
+                        counts[songs[state.idx].url] = (counts[songs[state.idx].url] || 0) + 1;
+                        localStorage.setItem('lite_play_counts', JSON.stringify(counts));
+                        
+                        loadTrack(state.idx + 1, true);
+                    };
                 }
 
-                // Keyboard
                 document.addEventListener('keydown', (e) => {
                     if(e.code === 'Space') { e.preventDefault(); togglePlay(); }
                 });
