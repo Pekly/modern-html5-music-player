@@ -13,9 +13,11 @@
 
 ---
 
-A self-contained, open-source HTML5 music player designed to be embedded anywhere.
+A self-contained, open-source HTML5 music player made for Neocities, Nekoweb, GitHub Pages, and personal websites.
 
-It includes a clean responsive UI, real-time visualizer, playlist search, theme switching, favorites, keyboard shortcuts, playback speed control, and support for both audio and video files.
+It is built for anyone who wants a clean music player for Neocities, a customizable music player for Nekoweb, or a simple HTML music player that can be embedded into any static website.
+
+It includes a responsive UI, real-time visualizer, playlist search, theme switching, favorites, keyboard shortcuts, playback speed control, and support for both audio and video files.
 
 🎧 [Live Demo →](https://pekly.github.io/modern-html5-music-player/)
 
@@ -49,6 +51,25 @@ It includes a clean responsive UI, real-time visualizer, playlist search, theme 
 - ♿ Accessible Controls, includes ARIA labels and media session support
 - 🧩 Single-File Design, HTML, CSS, and JavaScript in one file
 - 🎨 Easy Customization, edit CSS variables and `playerConfig`
+
+---
+
+## 🌐 Made for Neocities and Nekoweb, etc
+
+This player is designed for static websites, personal pages, and indie web projects.
+
+It works well on:
+
+- Neocities websites
+- Nekoweb websites
+- GitHub Pages
+- Personal HTML websites
+- Portfolio websites
+- Blog pages
+- Web shrines
+- Fan sites
+
+You can use it as a Neocities music player, HTML music player, or embedded HTML5 audio player without needing a backend, database, build tool, or external framework.
 
 ---
 
