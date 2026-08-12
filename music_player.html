@@ -393,7 +393,10 @@
             border: 1px solid var(--border-color);
             padding: 8px 12px;
             border-radius: 8px;
-            width: 250px;
+            min-width: 250px;
+            width: max-content;
+            max-width: 340px;
+            box-sizing: border-box;
             opacity: 0;
             transform: translateY(20px);
             visibility: hidden;
@@ -402,6 +405,11 @@
             backdrop-filter: blur(10px) saturate(180%);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             font-family: var(--font-stack);
+        }
+        #song-notification-toast > div {
+            min-width: 0;
+            flex: 1;
+            overflow: hidden;
         }
         #song-notification-toast.show { opacity: 1; transform: translateY(0); visibility: visible; }
         #toast-album-art { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
@@ -643,7 +651,7 @@
         </button>
         <div id="song-notification-toast" role="alert" aria-live="polite">
             <img id="toast-album-art" src="" alt="">
-            <div style="min-width: 0; flex: 1; overflow: hidden;">
+            <div>
                 <div style="font-size: 0.8rem; color: var(--secondary-text);">Now Playing:</div>
                 <div id="toast-song-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
             </div>
