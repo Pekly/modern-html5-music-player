@@ -169,20 +169,6 @@
             transition: transform 0.4s ease-out, box-shadow 0.3s ease;
         }
 
-        #album-art.spinning {
-            box-shadow: 0 0 8px var(--highlight-color);
-            border-color: var(--highlight-color);
-        }
-
-        @keyframes art-pulse {
-            0%, 100% { box-shadow: 0 0 4px var(--highlight-color); }
-            50% { box-shadow: 0 0 12px var(--highlight-color); }
-        }
-
-        #album-art.playing-glow {
-            animation: art-pulse 2s ease-in-out infinite;
-        }
-
         #album-art::after {
             content: '♪';
             position: absolute;
@@ -239,16 +225,12 @@
             transition: color 0.4s ease; 
             display: inline-block;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         
         #song-title.overflowing {
-            animation: marquee 8s linear infinite;
-            padding-right: 40px;
-        }
-        
-        @keyframes marquee {
-            0%   { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+            animation: scroll-back-forth 5s ease-in-out infinite alternate;
+            padding-right: 0;
         }
 
         #song-artist { font-size: 0.75rem; color: var(--secondary-text); text-overflow: ellipsis; overflow: hidden; flex-shrink: 1; transition: color 0.4s ease; }
@@ -280,54 +262,29 @@
              z-index: 2;
         }
 
-        #player-toggle-btn::after {
-            content: '';
-            position: absolute;
-            top: 6px; right: 6px;
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--highlight-color);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        #player-toggle-btn.is-playing::after {
-            opacity: 1;
-            animation: blink-dot 1.5s ease-in-out infinite;
-        }
-
-        @keyframes blink-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
-        }
 
         #player-toggle-btn:hover { color: var(--highlight-color); }
         .toggled-glow { color: var(--highlight-color) !important; }
 
         #audio-player {
-            display: none;
+            display: block;
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
             z-index: -1;
-            opacity: 0.4;
+            opacity: 0;
+            visibility: hidden;
             pointer-events: none;
             border-radius: inherit;
+            transition: opacity 0.4s ease, visibility 0.4s ease, bottom 0.4s ease;
         }
 
         .player-body.is-video #audio-player {
-            display: block;
+            opacity: 0.4;
+            visibility: visible;
         }
 
-        #speed-btn {
-            font-family: var(--font-stack);
-            font-weight: 700;
-            font-size: 0.75rem !important;
-            width: 28px;
-            text-align: center;
-        }
 
-        #speed-btn.active { color: var(--highlight-color); text-shadow: 0 0 5px var(--highlight-color); }
 
         .timeline-container { 
             display: flex; 
@@ -393,10 +350,7 @@
             border: 1px solid var(--border-color);
             padding: 8px 12px;
             border-radius: 8px;
-            min-width: 250px;
-            width: max-content;
-            max-width: 340px;
-            box-sizing: border-box;
+            width: 250px;
             opacity: 0;
             transform: translateY(20px);
             visibility: hidden;
@@ -405,11 +359,6 @@
             backdrop-filter: blur(10px) saturate(180%);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
             font-family: var(--font-stack);
-        }
-        #song-notification-toast > div {
-            min-width: 0;
-            flex: 1;
-            overflow: hidden;
         }
         #song-notification-toast.show { opacity: 1; transform: translateY(0); visibility: visible; }
         #toast-album-art { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
@@ -437,7 +386,7 @@
             position: relative;
             border: 1px solid var(--border-color);
             width: 100%;
-            max-height: 60vh;
+            height: 60vh;
             display: flex;
             flex-direction: column;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
@@ -448,7 +397,7 @@
         .modal-header-top { display: flex; justify-content: space-between; align-items: center; }
         .modal-header h3 { margin: 0; font-size: 1.2rem; color: var(--primary-text); }
         
-        .modal-control-btn { background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: var(--secondary-text); transition: all 0.2s; cursor: pointer; font-size: 0.85rem; padding: 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; }
+        .modal-control-btn { background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: var(--secondary-text); transition: all 0.2s; cursor: pointer; font-size: 0.85rem; padding: 6px; border-radius: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; position: relative; }
         .modal-control-btn:hover { color: var(--primary-text); border-color: var(--secondary-text); background: rgba(255,255,255,0.05); }
         .modal-control-btn.toggled-glow { color: var(--highlight-color); border-color: var(--highlight-color); background: rgba(255,255,255,0.05); }
 
@@ -458,7 +407,7 @@
         #settings-btn { background: none; border: none; color: var(--secondary-text); transition: color 0.2s, transform 0.2s; cursor: pointer; padding: 4px; font-size: 0.9rem; }
         #settings-btn:hover { color: var(--primary-text); transform: scale(1.15); }
 
-        #settings-modal {
+        #settings-modal, #shortcuts-modal {
             position: fixed;
             bottom: 80px;
             left: 10px;
@@ -474,9 +423,13 @@
             pointer-events: none;
             font-family: var(--font-stack);
         }
-        #settings-modal.show { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
+        #settings-modal.show, #shortcuts-modal.show { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
 
         .settings-body { padding: 15px; overflow-y: auto; flex-grow: 1; }
+        .settings-body::-webkit-scrollbar { width: 8px; }
+        .settings-body::-webkit-scrollbar-track { background: var(--scrollbar-track-color); border-radius: 4px; }
+        .settings-body::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb-color); border-radius: 4px; }
+        .settings-body::-webkit-scrollbar-thumb:hover { background-color: var(--highlight-color); }
         .theme-list-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; cursor: pointer; color: var(--secondary-text); transition: color 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .theme-list-item:hover { color: var(--primary-text); }
         .theme-list-item:last-child { border-bottom: none; }
@@ -485,10 +438,83 @@
         .theme-button:hover { transform: scale(1.15); outline-color: var(--primary-text); }
         .theme-button.active { outline-color: var(--highlight-color); }
 
+        .toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0;}
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); transition: .4s; border-radius: 22px; border: 1px solid var(--border-color); }
+        .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: var(--secondary-text); transition: .4s; border-radius: 50%; }
+        input:checked + .toggle-slider { background-color: var(--highlight-color); border-color: var(--highlight-color); }
+        input:checked + .toggle-slider:before { transform: translateX(18px); background-color: var(--background-color); }
+
+        #music-player.video-floating .player-body { overflow: visible; }
+        
+        #music-player.video-floating .player-body.is-video #audio-player {
+            position: absolute;
+            top: auto;
+            left: -1px;
+            bottom: calc(100% + 1px);
+            width: calc(100% + 43px);
+            height: auto;
+            aspect-ratio: 16/9;
+            z-index: 50;
+            opacity: 1 !important;
+            visibility: visible !important;
+            border-radius: 8px 8px 0 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: opacity 0.4s ease, visibility 0.4s ease, bottom 0.4s ease;
+            pointer-events: auto;
+            object-fit: cover;
+        }
+
+        #music-player.video-floating:not(.player-hidden):not(:has(#playlist-modal.show)):not(:has(#settings-modal.show)):not(:has(#shortcuts-modal.show)):has(.player-body.is-video),
+        #music-player.video-floating:not(.player-hidden):not(:has(#playlist-modal.show)):not(:has(#settings-modal.show)):not(:has(#shortcuts-modal.show)):has(.player-body.is-video) .player-body,
+        #music-player.video-floating:not(.player-hidden):not(:has(#playlist-modal.show)):not(:has(#settings-modal.show)):not(:has(#shortcuts-modal.show)):has(.player-body.is-video) #player-toggle-btn {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        #music-player.video-floating:not(.player-hidden):not(:has(#playlist-modal.show)):not(:has(#settings-modal.show)):not(:has(#shortcuts-modal.show)):has(.player-body.is-video)::before {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            top: auto;
+            bottom: -2px;
+            height: calc(100% + 4px);
+            padding-top: calc(56.25% + 0.56px);
+            box-sizing: content-box;
+        }
+
+        #music-player:has(#playlist-modal.show) #audio-player, 
+        #music-player:has(#settings-modal.show) #audio-player {
+            opacity: 0.1 !important;
+            pointer-events: none;
+        }
+
+        /* Save resources by preventing video frame rendering when minimized */
+        #music-player.player-hidden #audio-player,
+        #music-player.player-hidden.video-floating .player-body.is-video #audio-player {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        @media (max-width: 500px) {
+            #music-player.video-floating .player-body.is-video #audio-player {
+                max-width: none;
+            }
+        }
+
         .search-row { display: flex; gap: 8px; }
         .modal-controls-row { display: flex; gap: 8px; margin-top: 5px; }
         #playlist-search { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--secondary-text); color: var(--primary-text); padding: 5px 8px; font-family: var(--font-stack); border-radius: 4px; box-sizing: border-box; flex-grow: 1; }
         #playlist-search:focus { outline: none; border-color: var(--highlight-color); box-shadow: 0 0 5px var(--highlight-color); }
+        
+        #playlist-search:-webkit-autofill,
+        #playlist-search:-webkit-autofill:hover, 
+        #playlist-search:-webkit-autofill:focus, 
+        #playlist-search:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px var(--panel-bg) inset !important;
+            -webkit-text-fill-color: var(--primary-text) !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
         
         #filter-fav-btn { background: none; border: 1px solid var(--secondary-text); color: var(--secondary-text); border-radius: 4px; padding: 0 8px; font-size: 0.8rem; transition: all 0.2s; }
         #filter-fav-btn.active { background: var(--highlight-color); color: var(--background-color); border-color: var(--highlight-color); }
@@ -496,7 +522,7 @@
 
         .modal-close-btn { background: none; border: none; font-size: 1.5rem; color: var(--secondary-text); cursor: pointer; }
 
-        #playlist-container { padding: 5px; overflow-y: auto; flex-grow: 1; counter-reset: track-counter; }
+        #playlist-container { padding: 5px; overflow-y: auto; flex-grow: 1; counter-reset: track-counter; min-height: 250px; }
         #playlist-container::-webkit-scrollbar { width: 8px; }
         #playlist-container::-webkit-scrollbar-track { background: var(--scrollbar-track-color); border-radius: 4px; }
         #playlist-container::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb-color); border-radius: 4px; }
@@ -539,7 +565,23 @@
         .playlist-song-title-row { display: flex; align-items: center; width: 100%; }
         .playlist-song-title-wrapper { overflow: hidden; white-space: nowrap; flex-shrink: 1; min-width: 0; display: flex; }
         .playlist-song-title { font-size: 1rem; color: var(--primary-text); display: inline-block; white-space: nowrap; flex-shrink: 0; transition: color 0.2s; }
-        .playlist-song-title.overflowing { animation: marquee 8s linear infinite; padding-right: 40px; }
+        .playlist-song-title.overflowing { 
+            animation: scroll-back-forth 5s ease-in-out infinite alternate; 
+            padding-right: 0; 
+        }
+        @keyframes scroll-back-forth {
+            0%, 15% { transform: translateX(0); }
+            85%, 100% { transform: translateX(var(--overflow-width, -10px)); }
+        }
+
+        .playlist-album-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+        }
+        
         .playlist-song-badges { display: flex; align-items: center; flex-shrink: 0; }
         .playlist-song-artist { font-size: 0.9rem; color: var(--secondary-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -550,6 +592,17 @@
             padding: 3px 6px;
             border-radius: 4px;
             margin-left: 8px;
+        }
+
+        .playlist-album-wrapper .video-tag {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            font-size: 0.45rem;
+            padding: 2px 4px;
+            margin-left: 0;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            z-index: 2;
         }
         
         .playlist-song.playing .video-tag {
@@ -579,20 +632,20 @@
                 top: auto;
                 left: 0;
                 transform: translateY(10px);
-                width: 280px;
+                width: 360px;
             }
              #playlist-modal.show {
                 transform: translateY(0);
             }
-            #settings-modal {
+            #settings-modal, #shortcuts-modal {
                 position: absolute;
                 bottom: 110%;
                 top: auto;
                 left: 0;
                 transform: translateY(10px);
-                width: 280px;
+                width: 360px;
             }
-            #settings-modal.show {
+            #settings-modal.show, #shortcuts-modal.show {
                 transform: translateY(0);
             }
         }
@@ -614,7 +667,9 @@
     <div id="music-player" class="player-hidden">
         <div class="player-body">
             <video id="audio-player" crossOrigin="anonymous" playsinline></video>
-            <div id="player-album-bg"></div>
+            <div class="player-bg-wrapper" style="position: absolute; inset: 0; z-index: -2; border-radius: inherit; overflow: hidden;">
+                <div id="player-album-bg"></div>
+            </div>
             <div class="album-art-container">
                 <img id="album-art" src="https://placehold.co/40x40/89ddff/0d1126?text=?" alt="Album Art">
                 <button id="playlist-btn" title="Playlist" aria-label="Open Playlist"><i class="fas fa-list-ol"></i></button>
@@ -639,9 +694,7 @@
                         <button id="prev-btn" title="Previous" aria-label="Previous Song"><i class="fas fa-backward"></i></button>
                         <button id="play-pause-btn" title="Play/Pause" aria-label="Play or Pause" aria-pressed="false"><i class="fas fa-play"></i></button>
                         <button id="next-btn" title="Next" aria-label="Next Song"><i class="fas fa-forward"></i></button>
-                        <button id="speed-btn" title="Speed: 1x" aria-label="Change Speed">1x</button>
                         <button id="sleep-timer-btn" title="Sleep Timer" aria-label="Set sleep timer"><i class="fas fa-moon"></i></button>
-                         <button id="playlist-toggle-btn-main" title="Playlist" aria-label="Open Playlist"><i class="fas fa-list-ul"></i></button>
                     </div>
                 </div>
             </div>
@@ -651,7 +704,7 @@
         </button>
         <div id="song-notification-toast" role="alert" aria-live="polite">
             <img id="toast-album-art" src="" alt="">
-            <div>
+            <div style="min-width: 0; flex: 1; overflow: hidden;">
                 <div style="font-size: 0.8rem; color: var(--secondary-text);">Now Playing:</div>
                 <div id="toast-song-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"></div>
             </div>
@@ -668,7 +721,6 @@
                     <div class="modal-header-top">
                         <h3 id="playlist-modal-title">Playlist</h3>
                         <div style="display:flex; align-items:center; margin-left:auto; margin-right:15px; gap:8px;">
-                            <button id="shortcuts-btn" title="Keyboard Shortcuts" aria-label="Show shortcuts"><i class="fas fa-question-circle"></i></button>
                             <button id="settings-btn" title="Settings" aria-label="Settings"><i class="fas fa-cog"></i></button>
                         </div>
                         <button class="modal-close-btn" aria-label="Close Playlist">&times;</button>
@@ -680,6 +732,8 @@
                     <div class="modal-controls-row">
                         <button id="shuffle-btn" class="modal-control-btn" title="Shuffle" aria-label="Shuffle"><i class="fas fa-random"></i> <span>Shuffle</span></button>
                         <button id="repeat-btn" class="modal-control-btn" title="Repeat" aria-label="Repeat"><i class="fas fa-redo"></i> <span>Repeat</span></button>
+                        <button id="speed-btn" class="modal-control-btn" title="Speed: 1x" aria-label="Change Speed"><i class="fas fa-tachometer-alt"></i> <span>1x</span></button>
+                        <button id="reverb-btn" class="modal-control-btn" title="Reverb" aria-label="Toggle Reverb"><i class="fas fa-magic"></i> <span>Reverb</span></button>
                     </div>
                 </div>
                 <div id="playlist-container"></div>
@@ -697,6 +751,23 @@
                 <div class="settings-body">
                     <h4 style="margin-top: 0; margin-bottom: 15px; color: var(--primary-text); font-size: 1rem;">Themes</h4>
                     <div id="theme-switcher-list"></div>
+                    
+                    <h4 style="margin-top: 25px; margin-bottom: 15px; color: var(--primary-text); font-size: 1rem;">Video Settings</h4>
+                    <div style="display:flex; justify-content:space-between; color:var(--primary-text); align-items:center;">
+                        <span>Dock Video on Player</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="video-floating-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <h4 style="margin-top: 25px; margin-bottom: 15px; color: var(--primary-text); font-size: 1rem;">Keyboard Shortcuts</h4>
+                    <div style="display:flex; flex-direction:column; gap:10px;">
+                        <div style="display:flex; justify-content:space-between; color:var(--primary-text); align-items:center;"><span>Play / Pause</span><kbd style="background:var(--border-color); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-family:var(--font-stack);">Space</kbd></div>
+                        <div style="display:flex; justify-content:space-between; color:var(--primary-text); align-items:center;"><span>Next Song</span><kbd style="background:var(--border-color); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-family:var(--font-stack);">&rarr;</kbd></div>
+                        <div style="display:flex; justify-content:space-between; color:var(--primary-text); align-items:center;"><span>Previous Song</span><kbd style="background:var(--border-color); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-family:var(--font-stack);">&larr;</kbd></div>
+                        <div style="display:flex; justify-content:space-between; color:var(--primary-text); align-items:center;"><span>Mute / Unmute</span><kbd style="background:var(--border-color); padding:4px 8px; border-radius:4px; font-size:0.8rem; font-family:var(--font-stack);">M</kbd></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -715,6 +786,7 @@
                 enableSleepTimer: true,
                 enableThemeSwitcher: true,
                 enableLikeSystem: true,
+                enableReverb: true,
                 defaultTheme: 'spotify',
                 themes: {
                     'spotify': { 
@@ -793,16 +865,16 @@
             };
             
             const playlistData = [
-                { title: 'Basics In Behavior', artist: 'The Living Tombstone', url: 'https://od.lk/s/OTdfOTk2NTAwNDNf/Basics%20in%20Behavior.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fef375e81acd13b970c57a895bb207513.1000x1000x1.png' },
-                { title: 'Resonance', artist: 'Home', url: 'https://od.lk/s/OTdfOTQzNzY2NjFf/HOME%20Resonance.mp3', albumArtUrl: 'https://f4.bcbits.com/img/a3321951232_10.jpg' },
+                { title: 'Let It Happen', artist: 'Tame Impala', url: 'https://od.lk/s/OTdfMTAzNjMyODgwXw/Tame%20Impala%20-%20Let%20It%20Happen%20%28Official%20Video%29-1280x720-avc1-mp4a.mp4', albumArtUrl: 'https://cdn-images.dzcdn.net/images/cover/de5b9b704cd4ec36f8bf49beb3e17ba2/1900x1900-000000-80-0-0.jpg' },
+                { title: 'Resonance', artist: 'Home', url: 'https://od.lk/s/OTdfOTQzNzY2NjFf/HOME%20Resonance.mp3', albumArtUrl: 'https://i.scdn.co/image/ab67616d0000b273f421e4ca838fe19d8cdf934a' },
                 { title: 'Miku', artist: 'Anamanaguchi', url: 'https://od.lk/s/OTdfOTQ0MDAyODdf/Miku%20by%20Anamanaguchi%20Lyrics%20Video.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F379dd3f911ddadfb3da8387069fdfd51.1000x1000x1.png' },
                 { title: 'Memory Reboot', artist: 'VØJ, Narvent', url: 'https://od.lk/s/OTdfOTQzNzY5MjRf/V%C3%98J%20Narvent%20Memory%20Reboot%204K%20Music%20Video.mp3', albumArtUrl: 'https://i1.sndcdn.com/artworks-8zY79hHzgzoNqx9O-qPGziw-t500x500.jpg' },
-                { title: 'Pretty Girl', artist: 'Clairo', url: 'https://od.lk/s/OTdfOTQzNzY7Mjlf/Clairo%20Pretty%20Girl%20slowed%20reverb.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F188096681dc237e27d7f3e8dcb1a9145.1000x1000x1.jpg' },
+                { title: 'Pretty Girl', artist: 'Clairo', url: 'https://od.lk/s/OTdfOTQzNzY3Mjlf/Clairo%20Pretty%20Girl%20slowed%20reverb.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F188096681dc237e27d7f3e8dcb1a9145.1000x1000x1.jpg' },
                 { title: 'menu', artist: 'nicopatty', url: 'https://od.lk/s/OTdfOTQzODA1MzBf/nico%20s%20nextbots%20ost%20menu.mp3', albumArtUrl: 'https://i.scdn.co/image/ab67616d00001e02199a52950442425d19d81aa8' },
                 { title: 'Airplane Mode', artist: 'Limbo', url: 'https://od.lk/s/OTdfOTQ0MDA1NDNf/Airplane%20Mode%20Limbo%20Lyrics.mp3', albumArtUrl: 'https://i.scdn.co/image/ab67616d0000b2730b08855f940277500e090ae5' },
                 { title: 'Sports', artist: 'Beach Bunny', url: 'https://od.lk/s/OTdfOTQzODAzNzVf/Beach%20Bunny%20Sports%20Official%20Audio.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fddaa4d18b3ce067a20f95d4a5a662819.1000x1000x1.jpg' },
                 { title: 'Dream Space', artist: 'DVRST', url: 'https://od.lk/s/OTdfOTk2NTAxMDJf/DVRST%20-%20Dream%20Space.mp4', albumArtUrl: 'https://i1.sndcdn.com/artworks-xBF9BLLAysdb1WLv-oNF5eQ-t1080x1080.jpg' },
-                { title: 'I Can’t Fix You', artist: 'The Living Tombstone & Crusher-P', url: 'https://od.lk/s/OTdfOTQ0MTcxMDZf/Five%20Nights%20at%20Freddys%20Sister%20Location%20Song%20I%20Can%E2%80%99t%20Fix%20You%20FNAFSL%20The%20Living%20Tombstone%20Crusher%20P%20%281%29.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F369efead1cd0fad3fbf861b8a9e377a2.1000x1000x1.png' },
+                { title: "I Can't Fix You", artist: 'The Living Tombstone & Crusher-P', url: 'https://od.lk/s/OTdfOTQ0MTcxMDZf/Five%20Nights%20at%20Freddys%20Sister%20Location%20Song%20I%20Can%E2%80%99t%20Fix%20You%20FNAFSL%20The%20Living%20Tombstone%20Crusher%20P%20%281%29.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F369efead1cd0fad3fbf861b8a9e377a2.1000x1000x1.png' },
                 { title: 'Until I End Up Dead', artist: 'Dream', url: 'https://od.lk/s/OTdfOTQ0MTcxMTJf/The%20Duel.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F2a75621d3484b42cb2ad5321d04e892c.1000x1000x1.png' },
                 { title: 'Mis', artist: 'Alex G', url: 'https://od.lk/s/OTdfOTQ0MjQ3NzJf/Mis.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F477284959a634a8ae91ab4983d786003.1000x1000x1.png' },
                 { title: 'Wasted Summers', artist: 'Juju<3', url: 'https://od.lk/s/OTdfOTQ0MjQ3NzRf/juju%20Wasted%20Summers%20Official%20Music%20Video.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/379x379/https%3A%2F%2Fimages.genius.com%2Fc59b284ed224372ddb05ef3e38c60657.1000x1000x1.png' },
@@ -811,29 +883,17 @@
                 { title: 'Mrs Magic', artist: 'Strawberry Guy', url: 'https://od.lk/s/OTdfOTQ0MjQ8MDNf/Strawberry%20Guy%20Mrs%20Magic.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fce5c2f7499d51bc41c482b468711977c.1000x1000x1.jpg' },
                 { title: 'Ayo', artist: 'Vandebo X Bold', url: 'https://od.lk/s/OTdfOTQ1MTQyMTdf/Vandebo%20X%20Bold%20AYO%20Official%20Music%20Video.mp3', albumArtUrl: 'https://s.mxmcdn.net/images-storage/albums2/3/4/3/4/4/1/47144343_350_350.jpg' },
                 { title: 'Cigarettes out the Window', artist: 'TV Girl', url: 'https://od.lk/s/OTdfOTQ1MTQ4NjBf/TV-Girl-Cigarettes-out-the-Window.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F53b0f609e5d9a3aecb36b7000aeba3b0.1000x1000x1.jpg' },
-                { title: 'Let It Happen', artist: 'Tame Impala', url: 'https://od.lk/s/OTdfOTQ1MzgzMzBf/Tame%20Impala%20Let%20It%20Happen%20Official%20Audio.mp3', albumArtUrl: 'https://cdn-images.dzcdn.net/images/cover/de5b9b704cd4ec36f8bf49beb3e17ba2/1900x1900-000000-80-0-0.jpg' },
+                { title: 'Basics In Behavior', artist: 'The Living Tombstone', url: 'https://od.lk/s/OTdfOTk2NTAwNDNf/Basics%20in%20Behavior.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fef375e81acd13b970c57a895bb207513.1000x1000x1.png' },
                 { title: 'Po Pi Po', artist: 'Hatsune Miku', url: 'https://od.lk/s/OTdfOTk2NTg2NjZf/%E3%80%90%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF%E3%80%91%E3%81%BD%E3%81%A3%E3%81%B4%E3%81%A3%E3%81%BD%E3%83%BC%20-%20Po%20pi%20po%20%20Miku%20Hatsune%20Vegetable%20Juice%20Dance.mp4', albumArtUrl: 'https://static.wikia.nocookie.net/project-diva/images/a/ad/Po_Pi_Po_illustration.jpg' },
                 { title: 'GONE, GONE / THANK YOU', artist: 'Tyler, The Creator', url: 'https://od.lk/s/OTdfOTQ1NDc0MDJf/Tyler-The-Creator-GONE-GONE-THANK-YOU.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F99d79385685ab3a4b7a7ccbc6fd27310.1000x1000x1.png' },
                 { title: 'Last Shot', artist: 'VALORANT, templuv & 347aidan', url: 'https://od.lk/s/OTdfOTk2NTg2NDRf/Last%20Shot%20ft.%20templuv%20%26%20347aidan%20%28Official%20Music%20Video%29%20__%20VALORANT%20Champions%202025.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F5f178d4f2c31f465a41d2fc266ef88ca.1000x1000x1.png' },
                 { title: 'BUTCHER VANITY', artist: 'Vane Lily', url: 'https://od.lk/s/OTdfOTk2NTg2MjFf/BUTCHER%20VANITY%20ft.%20Yi%20Xi.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F186696c44d6d3d877c2af2f6f8f30c88.1000x1000x1.png' },
                 { title: 'Loser', artist: 'Tame Impala', url: 'https://od.lk/s/OTdfOTQ3NDA1NTJf/Tame%20Impala%20-%20Loser.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F300ec7717ac005a948dc5fc76bc7e1a2.1000x1000x1.png' },
-                { title: 'This Fffire', artist: 'Franz Ferdinand', url: 'https://od.lk/s/OTdfOTQ3NDA1NjNf/This%20Fire.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F7143aa88893d89a970bd80021eb86b1d.500x500x1.jpg' },
-                { title: 'Golden', artist: 'HUNTR/X', url: 'https://od.lk/s/OTdfOTk2NTg2ODdf/%E2%80%9CGolden%E2%80%9D%20Official%20Lyric%20Video%20_%20KPop%20Demon%20Hunters%20_%20Sony%20Animation.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fb5c11506d341f028f3665d09b2d41250.1000x1000x1.png' },
-                { title: 'Feel Good Inc.', artist: 'Gorillaz', url: 'https://od.lk/s/OTdfOTQ3ODI2MjBf/Gorillaz%20-%20Feel%20Good%20Inc..mp3', albumArtUrl: 'https://i.scdn.co/image/ab67616d0000b27319d85a472f328a6ed9b704cf' },
-                { title: 'Counting Stars', artist: 'OneRepublic', url: 'https://od.lk/s/OTdfOTQ3ODI2MjFf/OneRepublic%20-%20Counting%20Stars.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F5597f65d29b2a80c9e7a168c1e8110b3.1000x1000x1.jpg' },
-                { title: 'たぶん', artist: 'YOASOBI', url: 'https://od.lk/s/OTdfOTQ3ODI2MjJf/Yoasobi%20-%20Tabun%20%E3%81%9F%E3%81%B6%E3%82%93.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fe1ddb274c759f3ec4da6e21e8049032e.1000x1000x1.png' },
-                { title: 'アイドル', artist: 'YOASOBI', url: 'https://od.lk/s/OTdfOTk2NTg2MDBf/YOASOBI%E3%80%8C%E3%82%A2%E3%82%A4%E3%83%89%E3%83%AB%E3%80%8D%20Official%20Music%20Video.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9814c857d1226a4cae15e6b8b0b7dfae.1000x1000x1.png' },
-                { title: 'Cupid', artist: 'Fifty Fifty', url: 'https://od.lk/s/OTdfOTkwNjQ2Nzhf/FIFTY%20FIFTY%20%28%ED%94%BC%ED%94%84%ED%8B%B0%ED%94%84%ED%8B%B0%29%20-%20%27Cupid%27%20%28TwinVer.%29%20Official%20Lyric%20Video.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F854ec5a9d07aa6e4c93d8280a30377c2.1000x1000x1.png' },
-                { title: 'wavgun', artist: 'nicopatty', url: 'https://od.lk/s/OTdfOTk2NTg3MTJf/nico%27s%20nextbots%20ost%20-%20wavgun.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9af9354df5b2cb3871f1a6c31b47bfd6.1000x1000x1.png' },
-                { title: 'more than words', artist: 'Hitsujibungaku', url: 'https://od.lk/s/OTdfOTk2OTc5Njlf/TV%E3%82%A2%E3%83%8B%E3%83%A1%E3%80%8E%E5%91%AA%E8%A1%93%E5%BB%BB%E6%88%A6%E3%80%8F%E7%AC%AC2%E6%9C%9F%E3%80%8C%E6%B8%8B%E8%B0%B7%E4%BA%8B%E5%A4%89%E3%80%8D%E3%83%8E%E3%83%B3%E3%82%AF%E3%83%AC%E3%82%B8%E3%83%83%E3%83%88ED%E3%83%A0%E3%83%BC%E3%83%93%E3%83%BC%EF%BC%8FED%E3%83%86%E3%83%BC%E3%83%9E%EF%BC%9A%E7%BE%8A%E6%96%87%E5%AD%A6%E3%80%8Cmore%20than%20words%E3%80%8D%EF%BD%9C%E6%AF%8E%E9%80%B1%E6%9C%A8%E6%9B%9C%E5%A4%9C11%E6%99%8256%E5%88%86%EF%BD%9EMBS_TBS%E7%B3%BB%E5%88%97%E5%85%A8%E5%9B%BD28%E5%B1%80%E3%81%AB%E3%81%A6%E6%94%BE%E9%80%81%E4%B8%AD%21%21.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F69de42aaf34cdbbab1efc4c5e4111789.1000x1000x1.png' },
-                { title: 'Revenge', artist: 'CaptainSparklez', url: 'https://od.lk/s/OTdfOTk2OTc5OTJf/_Revenge_%20-%20A%20Minecraft%20Parody%20of%20Usher%27s%20DJ%20Got%20Us%20Fallin%27%20In%20Love%20%28Music%20Video%29.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F441d57ab449565085b93b8b67936f413.1000x1000x1.png' },
-                { title: 'poster boy', artist: '2hollis', url: 'https://od.lk/s/OTdfOTk2OTc5OTlf/2hollis%20poster%20boy%20official%20audio.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fb0ed7dc3e6a6782afb4b83402652f976.1000x1000x1.png' },
                 { title: 'this is what autumn feels like', artist: 'JVKE', url: 'https://od.lk/s/OTdfOTk2OTgwMDZf/JVKE%20this%20is%20what%20autumn%20feels%20like.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F02e5f0a271f47c34d7e0619cf38d77fa.1000x1000x1.png' },
                 { title: 'Let You Down', artist: 'Dawid Podsiadlo', url: 'https://od.lk/s/OTdfOTk3NjY4NzFf/Cyberpunk%20Edgerunners%20%E2%80%94%20Ending%20Theme%20%20Let%20You%20Down%20by%20Dawid%20Podsiad%C5%82o%20%20Netflix.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Ff7187d9a6b515b692fa46dda8f62841b.1000x1000x1.png' },
                 { title: 'Mesmerizer', artist: 'Hatsune Miku＆Kasane Teto', url: 'https://od.lk/s/OTdfOTk3NjY4NzNf/%E3%83%A1%E3%82%BA%E3%83%9E%E3%83%A9%E3%82%A4%E3%82%B6%E3%83%BC%20%20%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF%E3%83%BB%E9%87%8D%E9%9F%B3%E3%83%86%E3%83%88SV.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fe5f9b172bc5baacc50441ef12fc54109.600x600x1.jpg' },
                 { title: 'WILD SIDE', artist: 'ALI', url: 'https://od.lk/s/OTdfOTk3NjY4NzVf/TV%E3%82%A2%E3%83%8B%E3%83%A1%E3%80%8CBEASTARS%E3%80%8D%E3%83%8E%E3%83%B3%E3%82%AF%E3%83%AC%E3%82%B8%E3%83%83%E3%83%88%20OP.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9b8c1b9789d219b09a4c658cf77b2360.1000x1000x1.png' },
                 { title: 'sherbet lobby', artist: 'bxnji, nicopatty', url: 'https://od.lk/s/OTdfOTk3NjY5MDZf/nico%27s%20nextbots%20ost%20-%20sherbet%20lobby%20w%20bxnji.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9af9354df5b2cb3871f1a6c31b47bfd6.1000x1000x1.png' },
-                { title: 'Tengri: GEGEEN', artist: 'ThunderZ', url: 'https://od.lk/s/OTdfOTk5NDQ3OTNf/ThunderZ%20Tengri%20GEGEEN%20ft.Ninjin%20Monjigo.mp3', albumArtUrl: 'https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/c3/55/50/c35550b4-9510-a2dd-9609-d3265edfd02f/8721465487091.png/300x300bb.webp' },
                 { title: '勇者', artist: 'YOASOBI', url: 'https://od.lk/s/OTdfOTk5NDQ4NTRf/YOASOBI%E3%80%8C%E5%8B%87%E8%80%85%E3%80%8D%20Official%20Music%20Video%EF%BC%8FTV%E3%82%A2%E3%83%8B%E3%83%A1%E3%80%8E%E8%91%AC%E9%80%81%E3%81%AE%E3%83%95%E3%83%AA%E3%83%BC%E3%83%AC%E3%83%B3%E3%80%8F%E3%82%AA%E3%83%BC%E3%83%97%E3%83%8B%E3%83%B3%E3%82%B0%E3%83%86%E3%83%BC%E3%83%9E.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9655749c805a20617146645d2694c09b.1000x1000x1.png' },
                 { title: '少女A', artist: 'siinamota', url: 'https://od.lk/s/OTdfOTk5NDQ4ODhf/%E5%B0%91%E5%A5%B3A.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F50ce48a89abbde006b424f8e9db61701.1000x1000x1.png' },
                 { title: 'so bitter', artist: 'Stxlkin', url: 'https://od.lk/s/OTdfOTk5NzIwOTNf/Stxlkin%20so%20bitter%20Lyrics.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F154e06047f91726c89d45abf3b2081a0.1000x1000x1.png' },
@@ -845,7 +905,24 @@
                 { title: 'Die For You', artist: 'VALORANT ft. Grabbitz', url: 'https://od.lk/s/OTdfMTAwMDAzODkxXw/Die%20For%20You%20ft.%20Grabbitz%20__%20Official%20Music%20Video%20__%20VALORANT%20Champions%202021.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F580d81a058d544f627b3f8ecf3866add.1000x1000x1.png' },
                 { title: 'No Mercy', artist: 'The Living Tombstone', url: 'https://od.lk/s/OTdfMTAwMDAzODk5Xw/OVERWATCH_%20No%20Mercy%20-%20The%20Living%20Tombstone.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F4cb8fedd3538be331b9093ee3c837348.1000x1000x1.png' },
                 { title: 'next to you', artist: 'Øneheart', url: 'https://od.lk/s/OTdfMTAwMDAzOTE4Xw/%C3%98neheart%20-%20next%20to%20you%20%5BOfficial%20Video%5D.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F2e42d74a39bee068e6295180e7dfa894.500x500x1.jpg' },
-
+                { title: 'Too Deep', artist: 'Vandebo', url: 'https://od.lk/s/OTdfMTAwNTM0NzkxXw/MagGod%20%26%20Vandebo%20-%20Too%20Deep.mp4', albumArtUrl: 'https://s.mxmcdn.net/images-storage/albums2/0/1/6/4/1/0/50014610_500_500.jpg' },
+                { title: 'this is what winter feels like', artist: 'JVKE', url: 'https://od.lk/s/OTdfMTAwNTI1MDUxXw/JVKE%20-%20this%20is%20what%20winter%20feels%20like%20%28official%20lyric%20video%29.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F073593c8907dfdcc3eaf79006a8c8501.1000x1000x1.png' },
+                { title: '怪物', artist: 'YOASOBI', url: 'https://od.lk/s/OTdfMTAwNTI1MTYzXw/YOASOBI%E3%80%8C%E6%80%AA%E7%89%A9%E3%80%8DOfficial%20Music%20Video%E3%80%80%28YOASOBI%20-%20Monster%29.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F3c1cfc9894992b89654841ccbbb4559c.1000x1000x1.jpg' },
+                { title: 'Suuliin uyanga', artist: 'The Lemons', url: 'https://od.lk/s/OTdfMTAwNTI1MjI0Xw/The%20Lemons%20Suuliin%20uyanga.mp3', albumArtUrl: 'https://i1.sndcdn.com/artworks-000128769099-7t3u3h-t500x500.jpg' },
+                { title: 'METAMORPHOSIS', artist: 'INTERWORLD', url: 'https://od.lk/s/OTdfMTAxNjkzMzk2Xw/INTERWORLD%20METAMORPHOSIS.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F2f6e4b7444503feda893f8d6a23e29fa.720x720x1.png' },
+                { title: 'Bad Habit', artist: 'Steve Lacy', url: 'https://od.lk/s/OTdfMTAxNjkxMTk0Xw/Steve%20Lacy%20-%20Bad%20Habit%20%28Official%20Video%29-1280x720-avc1-mp4a.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F48ad06b7c45c448ae15e07b84b2a1ada.1000x1000x1.png' },
+                { title: 'all I want is you', artist: 'Rebzyyx', url: 'https://od.lk/s/OTdfMTAxNjkyODcwXw/Rebzyyx%20-%20all%20i%20want%20is%20you%20%28Official%20Audio%29-854x480-avc1-mp4a.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F314b5e9b4b52df169dbebafc75e77d29.1000x1000x1.png' },
+                { title: 'her', artist: 'JVKE', url: 'https://od.lk/s/OTdfMTAxNjkzMTc1Xw/JVKE%20-%20her%20%28official%20lyric%20video%29-854x480-mp4a.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9d2f55852c9251fd061a3ba2c83a5e6f.1000x1000x1.png' },
+                { title: 'Resonance (432 hz)', artist: 'HOME', url: 'https://od.lk/s/OTdfMTAxNjk3Mzk4Xw/HOME%20-%20resonance%20%28432%20hz%29%20%28slowed%20%2B%20reverb%29-640x360-avc1-mp4a.mp4', albumArtUrl: 'https://i.ibb.co/wh8mdynL/501-B20-EA-3-DCB-44-C8-88-AA-D2263131475-C.png' },
+                { title: 'RYD / DARK RED', artist: 'Steve Lacy', url: 'https://od.lk/s/OTdfMTAzNTM0MzczXw/STEVE%20LACY%20-%20RYD%20%20DARK%20RED-1280x720-mp4a.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F279020677b1aa8239693c06991129c5b.1000x1000x1.png' },
+                { title: 'Alternative Outro', artist: 'LUCKI', url: 'https://od.lk/s/OTdfMTAzNTM0MzgxXw/Alternative%20Outro.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fc6d2ed637efcb81a56774364669c6698.999x999x1.png' },
+                { title: 'Buruugui', artist: 'Vandebo', url: 'https://od.lk/s/OTdfMTAzNTM0NDAwXw/Vandebo%20-%20Buruugui%20%28Official%20Music%20Video%29%20prod.by%20976Beatz_10_192.mp4', albumArtUrl: 'https://i.scdn.co/image/ab67616d0000b273309ad44293fbeba6ecddb54d' },
+                { title: 'Beanie', artist: 'Chezile', url: 'https://od.lk/s/OTdfMTAzNTM0NDAxXw/Chezile%20-%20Beanie-640x360-avc1-mp4a.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F98635c01146e2c911b8f4cfbd3361e1a.1000x1000x1.png' },
+                { title: 'My Time', artist: 'bo en', url: 'https://od.lk/s/OTdfMTAzNTM0NDA2Xw/bo%20en%20-%20my%20time.mp3', albumArtUrl: 'https://f4.bcbits.com/img/a2864966444_5.jpg' },
+                { title: 'the feeling', artist: 'Steve Lacy', url: 'https://od.lk/s/OTdfMTAzNjE1NDIyXw/Steve%20Lacy%20-%20the%20feeling%20%28Official%20Video%29-1280x720-avc1-opus.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F79e53f1fc433ef0c1abf3846dc6ee251.1000x1000x1.png' },
+                { title: 'Finesse (Remix)', artist: 'Bruno Mars feat. Cardi B', url: 'https://od.lk/s/OTdfMTAzNjE1OTQxXw/Bruno%20Mars%20-%20Finesse%20%28Remix%29%20%28feat.%20Cardi%20B%29%20%28Official%20Music%20Video%29-854x480-avc1-mp4a.mp4', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Ff6f0261cef5bf1b13fffa6b56dfab9cd.1000x1000x1.png' },
+                { title: 'PRIDE.', artist: 'Kendrick Lamar', url: 'https://od.lk/s/OTdfMTAzNjE1OTU3Xw/Kendrick%20Lamar%20-%20PRIDE..mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Ff3f77222e1b615e0a10354ea6282ff22.1000x1000x1.png' },
+                { title: 'A New Kind of Love', artist: 'Frou Frou', url: 'https://od.lk/s/OTdfMTAzNjIwODc2Xw/Frou%20Frou%20-%20A%20New%20Kind%20of%20Love%20%28Lyrics%29%20%20Are%20ya%20falling%20in%20love%20%20I%27ve%20a%20feeling%20you%20are.mp3', albumArtUrl: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Ffb07c9940ab13f5aeebcfcbaa553a5ab.1000x1000x1.jpg' },
             ];
 
             function setupMusicPlayer() {
@@ -857,16 +934,18 @@
                     playlist: [...playlistData],
                     originalPlaylist: [...playlistData],
                     favorites: JSON.parse(localStorage.getItem('oss_music_player_favorites') || '[]'),
+                    queuedTracks: [],
                     currentTrack: 0, isPlaying: false, isShuffle: false,
-                    repeatMode: 'none',
+                    repeatMode: 'none', isReverbEnabled: false,
                     sleepTimer: null, sleepTimerDuration: 0,
-                    audioContext: null, sourceNode: null, analyserNode: null, dataArray: null,
+                    audioContext: null, sourceNode: null, analyserNode: null, dataArray: null, convolverNode: null, reverbGainNode: null,
                     dom: {
                         player: document.getElementById('music-player'), toggleBtn: document.getElementById('player-toggle-btn'),
                         playPauseBtn: document.getElementById('play-pause-btn'), nextBtn: document.getElementById('next-btn'),
                         prevBtn: document.getElementById('prev-btn'), shuffleBtn: document.getElementById('shuffle-btn'),
                         repeatBtn: document.getElementById('repeat-btn'), likeBtn: document.getElementById('like-btn'),
                         speedBtn: document.getElementById('speed-btn'),
+                        reverbBtn: document.getElementById('reverb-btn'),
                         sleepTimerBtn: document.getElementById('sleep-timer-btn'),
                         timelineSlider: document.getElementById('timeline-slider'),
                         songTitleEl: document.getElementById('song-title'), songArtistEl: document.getElementById('song-artist'),
@@ -881,7 +960,6 @@
                         themeSwitcher: document.getElementById('theme-switcher-list'), promoBanner: document.getElementById('github-promotion'),
                         promoLink: document.getElementById('github-link'), promoCloseBtn: document.getElementById('close-promo-btn'),
                         playerBody: document.querySelector('.player-body'),
-                        shortcutsBtn: document.getElementById('shortcuts-btn'),
                         settingsBtn: document.getElementById('settings-btn'),
                         settingsModal: document.getElementById('settings-modal'),
                         settingsCloseBtn: document.querySelector('.settings-close-btn')
@@ -963,6 +1041,20 @@
                     }
                 }
 
+                function createReverbBuffer(audioCtx) {
+                    const sampleRate = audioCtx.sampleRate;
+                    const length = sampleRate * 2.5; 
+                    const impulse = audioCtx.createBuffer(2, length, sampleRate);
+                    const decay = 2.0;
+                    for (let i = 0; i < 2; i++) {
+                        const channel = impulse.getChannelData(i);
+                        for (let j = 0; j < length; j++) {
+                            channel[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / length, decay);
+                        }
+                    }
+                    return impulse;
+                }
+
                 function initAudioContext() {
                     if (!playerConfig.enableVisualizer || player.audioContext) return;
                     try {
@@ -970,6 +1062,18 @@
                         player.sourceNode = player.audioContext.createMediaElementSource(player.audio);
                         player.analyserNode = player.audioContext.createAnalyser();
                         player.analyserNode.fftSize = 256;
+                        
+                        if (playerConfig.enableReverb) {
+                            player.convolverNode = player.audioContext.createConvolver();
+                            player.convolverNode.buffer = createReverbBuffer(player.audioContext);
+                            player.reverbGainNode = player.audioContext.createGain();
+                            player.reverbGainNode.gain.value = player.isReverbEnabled ? 0.6 : 0;
+                            
+                            player.analyserNode.connect(player.convolverNode);
+                            player.convolverNode.connect(player.reverbGainNode);
+                            player.reverbGainNode.connect(player.audioContext.destination);
+                        }
+
                         player.sourceNode.connect(player.analyserNode);
                         player.analyserNode.connect(player.audioContext.destination);
                         player.dataArray = new Uint8Array(player.analyserNode.frequencyBinCount);
@@ -1002,42 +1106,59 @@
                     const highlightColor = cachedHighlight;
                     const primaryColor = cachedPrimary;
 
-                    const time = Date.now() * 0.001;
-                    const xOffset = Math.sin(time / 2) * canvas.width * 0.5;
-                    const gradient = ctx.createLinearGradient(xOffset, 0, canvas.width - xOffset, 0);
-                    gradient.addColorStop(0, highlightColor);
-                    gradient.addColorStop(1, primaryColor);
-                
                     let targetFrequencies = new Uint8Array(bufferLength);
                     if (player.isPlaying) {
                         player.analyserNode.getByteFrequencyData(targetFrequencies);
                     }
                 
-                    let barWidth;
-                    if (player.dom.toggleBtn && canvas.parentElement === player.dom.toggleBtn) {
-                        barWidth = (canvas.width / bufferLength) * 2.5; 
-                    } else {
-                        barWidth = (canvas.width / bufferLength) * 1.5; 
-                    }
+                    const isSmall = player.dom.toggleBtn && canvas.parentElement === player.dom.toggleBtn;
+                    
+                    const numBars = isSmall ? 16 : 48; 
+                    const gap = isSmall ? 2 : 4;
+                    const barWidth = Math.max(1, (canvas.width / (numBars * 2)) - gap);
+                    const centerY = canvas.height - (barWidth / 2); 
+                    const centerX = canvas.width / 2;
 
-                    let x = 0;
-                    for (let i = 0; i < bufferLength; i++) {
-                        let targetHeight = (targetFrequencies[i] / 255) * canvas.height * 0.8;
+                    ctx.shadowBlur = isSmall ? 4 : 12;
+                    ctx.shadowColor = highlightColor;
+                    ctx.lineCap = 'round';
+                    ctx.lineWidth = barWidth;
+
+                    for (let i = 0; i < numBars; i++) {
+                        const freqIndex = Math.floor((i / numBars) * (bufferLength * 0.6)); // Focus on lower-mid frequencies for better reaction
+                        let targetHeight = (targetFrequencies[freqIndex] / 255) * (canvas.height * 0.7);
                         let currentHeight = lastBarHeights[i] || 0;
                 
                         if (currentHeight < targetHeight) {
-                            currentHeight += (targetHeight - currentHeight) * 0.2;
+                            currentHeight += (targetHeight - currentHeight) * 0.25;
                         } else {
-                            currentHeight = currentHeight * 0.95;
+                            currentHeight = currentHeight * 0.85; // Faster decay for snappier feel
                         }
                 
-                        if (currentHeight < 1) currentHeight = 0;
+                        if (currentHeight < 2) currentHeight = 2; 
                         lastBarHeights[i] = currentHeight;
                 
-                        ctx.fillStyle = gradient;
-                        ctx.fillRect(x, canvas.height - currentHeight, barWidth, currentHeight);
-                        x += barWidth + 1;
+                        const gradient = ctx.createLinearGradient(0, centerY, 0, centerY - currentHeight);
+                        gradient.addColorStop(0, primaryColor);
+                        gradient.addColorStop(1, highlightColor);
+                        ctx.strokeStyle = gradient;
+
+                        const offsetX = (i * (barWidth + gap)) + (barWidth / 2) + (gap / 2);
+
+                        // Right side
+                        ctx.beginPath();
+                        ctx.moveTo(centerX + offsetX, centerY);
+                        ctx.lineTo(centerX + offsetX, centerY - currentHeight);
+                        ctx.stroke();
+
+                        // Left side
+                        ctx.beginPath();
+                        ctx.moveTo(centerX - offsetX, centerY);
+                        ctx.lineTo(centerX - offsetX, centerY - currentHeight);
+                        ctx.stroke();
                     }
+
+                    ctx.shadowBlur = 0;
                 }
 
                 function showToast(title, message) {
@@ -1113,17 +1234,27 @@
                 }
 
                 function loadTrack(trackIndex, shouldPlay = false) {
+                    const trackToLoad = player.playlist[trackIndex];
+                    if (player.queuedTracks) {
+                        const qIndex = player.queuedTracks.indexOf(trackToLoad.url);
+                        if (qIndex !== -1) {
+                            player.queuedTracks.splice(qIndex, 1);
+                            setTimeout(populatePlaylistModal, 0);
+                        }
+                    }
                     player.currentTrack = trackIndex;
                     localStorage.setItem('oss_music_player_currentTrack', trackIndex);
-                    const track = player.playlist[trackIndex];
+                    const track = trackToLoad;
                     
                     if(player.dom.songTitleEl) {
                         player.dom.songTitleEl.classList.remove('overflowing');
+                        player.dom.songTitleEl.style.removeProperty('--overflow-width');
                         player.dom.songTitleEl.textContent = track.title;
                         requestAnimationFrame(() => {
                             if (player.dom.songTitleEl.scrollWidth > player.dom.songTitleEl.parentElement.offsetWidth) {
-                                player.dom.songTitleEl.textContent = track.title + ' \u00A0\u00A0\u00A0 ' + track.title;
                                 player.dom.songTitleEl.classList.add('overflowing');
+                                const diff = player.dom.songTitleEl.scrollWidth - player.dom.songTitleEl.parentElement.offsetWidth + 10;
+                                player.dom.songTitleEl.style.setProperty('--overflow-width', `-${diff}px`);
                             }
                         });
                     }
@@ -1180,6 +1311,15 @@
                 }
 
                 const playNext = () => {
+                    if (player.queuedTracks && player.queuedTracks.length > 0) {
+                        const nextUrl = player.queuedTracks.shift();
+                        const nextIndex = player.playlist.findIndex(t => t.url === nextUrl);
+                        if (nextIndex !== -1) {
+                            loadTrack(nextIndex, true);
+                            populatePlaylistModal();
+                            return;
+                        }
+                    }
                     if (player.isShuffle) {
                         let next;
                         do { next = Math.floor(Math.random() * player.playlist.length); }
@@ -1214,7 +1354,7 @@
 
                 if(playerConfig.enableSpeedControl && player.dom.speedBtn) {
                     let currentSpeedIndex = 0;
-                    const speeds = [1, 1.25, 1.5, 2];
+                    const speeds = [1, 1.25, 1.5, 0.85];
                     player.dom.speedBtn.addEventListener('click', () => {
                         currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
                         const s = speeds[currentSpeedIndex];
@@ -1222,9 +1362,13 @@
                         player.audio.preservesPitch = false;
                         if(player.audio.mozPreservesPitch !== undefined) player.audio.mozPreservesPitch = false;
                         if(player.audio.webkitPreservesPitch !== undefined) player.audio.webkitPreservesPitch = false;
-                        player.dom.speedBtn.textContent = s + 'x';
+                        player.dom.speedBtn.innerHTML = `<i class="fas fa-tachometer-alt"></i> <span>${s}x</span>`;
                         player.dom.speedBtn.title = 'Speed: ' + s + 'x';
-                        player.dom.speedBtn.classList.toggle('active', s !== 1);
+                        if (s === 1) {
+                            player.dom.speedBtn.classList.remove('toggled-glow');
+                        } else {
+                            player.dom.speedBtn.classList.add('toggled-glow');
+                        }
                     });
                 }
 
@@ -1275,10 +1419,6 @@
                         player.dom.playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
                         player.dom.playPauseBtn.setAttribute('aria-pressed', 'true');
                     }
-                    if(player.dom.albumArt) {
-                        player.dom.albumArt.classList.add('spinning');
-                        player.dom.albumArt.classList.add('playing-glow');
-                    }
                     if(player.dom.toggleBtn) player.dom.toggleBtn.classList.add('is-playing');
                     if(player.dom.playlistContainer && player.dom.playlistContainer.children[player.currentTrack]) {
                         const playingRow = player.dom.playlistContainer.children[player.currentTrack];
@@ -1296,10 +1436,6 @@
                     if(player.dom.playPauseBtn) {
                         player.dom.playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
                         player.dom.playPauseBtn.setAttribute('aria-pressed', 'false');
-                    }
-                    if(player.dom.albumArt) {
-                        player.dom.albumArt.classList.remove('spinning');
-                        player.dom.albumArt.classList.remove('playing-glow');
                     }
                     if(player.dom.toggleBtn) player.dom.toggleBtn.classList.remove('is-playing');
                     if(player.dom.playlistContainer && player.dom.playlistContainer.children[player.currentTrack]) {
@@ -1341,6 +1477,31 @@
                     player.dom.timelineSlider.addEventListener('input', (e) => { if (player.audio.duration) player.audio.currentTime = (e.target.value / 100) * player.audio.duration; });
                     player.dom.timelineSlider.addEventListener('mousedown', () => player.dom.timelineSlider.classList.add('grabbing'));
                     player.dom.timelineSlider.addEventListener('mouseup', () => player.dom.timelineSlider.classList.remove('grabbing'));
+                }
+
+                if (player.dom.reverbBtn && playerConfig.enableReverb) {
+                    const savedReverb = localStorage.getItem('oss_music_player_reverb') === 'true';
+                    player.isReverbEnabled = savedReverb;
+                    player.dom.reverbBtn.classList.toggle('toggled-glow', savedReverb);
+                    
+                    player.dom.reverbBtn.addEventListener('click', () => {
+                        player.isReverbEnabled = !player.isReverbEnabled;
+                        localStorage.setItem('oss_music_player_reverb', player.isReverbEnabled);
+                        player.dom.reverbBtn.classList.toggle('toggled-glow', player.isReverbEnabled);
+                        
+                        if (player.audioContext && player.reverbGainNode) {
+                            player.reverbGainNode.gain.setTargetAtTime(player.isReverbEnabled ? 0.6 : 0, player.audioContext.currentTime, 0.1);
+                        } else if (player.isReverbEnabled && !player.audioContext) {
+                            initAudioContext();
+                            if (player.audioContext && player.reverbGainNode) {
+                                player.reverbGainNode.gain.setValueAtTime(0.6, player.audioContext.currentTime);
+                            }
+                        }
+                        
+                        showToast('Reverb', player.isReverbEnabled ? 'On' : 'Off');
+                    });
+                } else if (player.dom.reverbBtn) {
+                    player.dom.reverbBtn.style.display = 'none';
                 }
 
                 if(player.dom.shuffleBtn) {
@@ -1406,17 +1567,29 @@
 
                 function toggleSettingsModal() {
                     if (!player.dom.settingsModal) return;
+                    const isOpening = !player.dom.settingsModal.classList.contains('show');
                     player.dom.settingsModal.classList.toggle('show');
-                    if (player.dom.playlistModal && player.dom.playlistModal.classList.contains('show')) player.dom.playlistModal.classList.remove('show');
+                    if (isOpening) {
+                        if (player.dom.playlistModal) player.dom.playlistModal.classList.remove('show');
+                    } else {
+                        if (player.dom.playlistModal) player.dom.playlistModal.classList.add('show');
+                    }
                 }
                 
                 if(player.dom.settingsBtn) player.dom.settingsBtn.addEventListener('click', toggleSettingsModal);
                 if(player.dom.settingsCloseBtn) player.dom.settingsCloseBtn.addEventListener('click', toggleSettingsModal);
 
+
+
                 function populatePlaylistModal(songsToDisplay = player.playlist) {
                     if(!player.dom.playlistContainer) return;
                     player.dom.playlistContainer.innerHTML = '';
                     
+                    if (songsToDisplay.length === 0) {
+                        player.dom.playlistContainer.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:var(--secondary-text); padding:20px; font-style:italic;">No songs found.</div>';
+                        return;
+                    }
+
                     const counts = JSON.parse(localStorage.getItem('oss_play_counts') || '{}');
 
                     songsToDisplay.forEach((song) => {
@@ -1434,14 +1607,23 @@
                         const videoTagHtml = isVideo ? `<span class="video-tag" title="Video File"><i class="fas fa-video"></i></span>` : '';
                         
                         const playCountHtml = counts[song.url] >= 3 ? `<span title="Played ${counts[song.url]} times" style="margin-left:6px; font-size:0.8rem;">🔥</span>` : '';
-                        const queueIconHtml = originalIndex !== player.currentTrack ? `<i class="fas fa-level-down-alt queue-icon" title="Play Next"></i>` : '';
+                        const qIndex = player.queuedTracks ? player.queuedTracks.indexOf(song.url) : -1;
+                        let queueIconHtml = '';
+                        if (qIndex !== -1) {
+                            queueIconHtml = `<div class="queue-icon queued-badge" title="Remove from Queue" style="background:var(--highlight-color); color:var(--background-color); border-radius:50%; width:18px; height:18px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:bold; cursor:pointer; opacity:1;">${qIndex + 1}</div>`;
+                        } else if (originalIndex !== player.currentTrack) {
+                            queueIconHtml = `<i class="fas fa-level-down-alt queue-icon" title="Play Next"></i>`;
+                        }
 
                         songEl.innerHTML = `
-                            <img src="${song.albumArtUrl}" alt="${song.title} album art">
+                            <div class="playlist-album-wrapper">
+                                <img src="${song.albumArtUrl}" alt="${song.title} album art">
+                                ${videoTagHtml}
+                            </div>
                             <div class="playlist-song-info">
                                 <div class="playlist-song-title-row">
                                     <div class="playlist-song-title-wrapper"><span class="playlist-song-title">${song.title}</span></div>
-                                    <div class="playlist-song-badges">${playCountHtml}${videoTagHtml}</div>
+                                    <div class="playlist-song-badges">${playCountHtml}</div>
                                 </div>
                                 <div class="playlist-song-artist">${song.artist}</div>
                             </div>
@@ -1453,17 +1635,28 @@
                             if (e.target.classList.contains('fav-icon')) {
                                 e.stopPropagation();
                                 toggleFavorite(song.url);
-                            } else if (e.target.classList.contains('queue-icon')) {
+                            } else if (e.target.closest('.queue-icon')) {
                                 e.stopPropagation();
-                                const songToQueue = player.playlist.splice(originalIndex, 1)[0];
-                                const insertAt = player.currentTrack + 1;
-                                player.playlist.splice(insertAt, 0, songToQueue);
-                                if (originalIndex < player.currentTrack) {
-                                    player.currentTrack--;
+                                const qIndex = player.queuedTracks.indexOf(song.url);
+                                if (qIndex !== -1) {
+                                    player.queuedTracks.splice(qIndex, 1);
+                                    showToast('Queue', `Removed "${song.title}" from queue`);
+                                } else {
+                                    player.queuedTracks.push(song.url);
+                                    showToast('Queue', `"${song.title}" added to queue`);
                                 }
-                                showToast('Queue', `"${songToQueue.title}" plays next`);
                                 populatePlaylistModal();
                             } else {
+                                if (songsToDisplay.length < player.playlist.length) {
+                                    const clickedLocalIndex = songsToDisplay.findIndex(s => s.url === song.url);
+                                    if (clickedLocalIndex !== -1) {
+                                        player.queuedTracks = [];
+                                        for (let i = clickedLocalIndex + 1; i < songsToDisplay.length; i++) {
+                                            player.queuedTracks.push(songsToDisplay[i].url);
+                                        }
+                                        showToast('Queue', `Queued the rest of the list`);
+                                    }
+                                }
                                 loadTrack(originalIndex, true); 
                                 if(player.dom.playlistModal && player.dom.playlistModal.classList.contains('show')) togglePlaylistModal();
                             }
@@ -1475,8 +1668,9 @@
                             const titleEl = songEl.querySelector('.playlist-song-title');
                             const wrapperEl = songEl.querySelector('.playlist-song-title-wrapper');
                             if (titleEl.scrollWidth > wrapperEl.offsetWidth) {
-                                titleEl.textContent = song.title + ' \u00A0\u00A0\u00A0 ' + song.title;
                                 titleEl.classList.add('overflowing');
+                                const diff = titleEl.scrollWidth - wrapperEl.offsetWidth + 10;
+                                titleEl.style.setProperty('--overflow-width', `-${diff}px`);
                             }
                         });
                     });
@@ -1493,11 +1687,7 @@
                     if(closeBtn) closeBtn.addEventListener('click', togglePlaylistModal);
                 }
 
-                if(player.dom.shortcutsBtn) {
-                    player.dom.shortcutsBtn.addEventListener('click', () => {
-                        showToast('Shortcuts', 'Space: Play/Pause  ←→: Skip  M: Mute');
-                    });
-                }
+
                 
                 const filterPlaylist = () => {
                     if(!player.dom.playlistSearch) return;
@@ -1524,13 +1714,13 @@
                 document.addEventListener('click', (e) => {
                     if (player.dom.playlistModal && player.dom.playlistModal.classList.contains('show')) {
                         const modalContent = player.dom.playlistModal.querySelector('.modal-content');
-                        if(modalContent && !modalContent.contains(e.target) && !e.target.closest('.album-art-container') && !e.target.closest('#playlist-toggle-btn-main') && !e.target.closest('.queue-icon') && !e.target.closest('#settings-btn')) {
+                        if(modalContent && !e.composedPath().includes(modalContent) && !e.target.closest('.album-art-container') && !e.target.closest('.queue-icon') && !e.target.closest('#settings-btn')) {
                             togglePlaylistModal();
                         }
                     }
                     if (player.dom.settingsModal && player.dom.settingsModal.classList.contains('show')) {
                         const modalContent = player.dom.settingsModal.querySelector('.modal-content');
-                        if(modalContent && !modalContent.contains(e.target) && !e.target.closest('#settings-btn')) {
+                        if(modalContent && !e.composedPath().includes(modalContent) && !e.target.closest('#settings-btn')) {
                             toggleSettingsModal();
                         }
                     }
@@ -1576,6 +1766,23 @@
                     applyTheme(localStorage.getItem('oss_music_player_theme') || playerConfig.defaultTheme);
                     
                     populatePlaylistModal();
+                    
+                    const videoFloatingToggle = document.getElementById('video-floating-toggle');
+                    if(videoFloatingToggle) {
+                        const isFloating = localStorage.getItem('oss_music_player_video_floating') === 'true';
+                        videoFloatingToggle.checked = isFloating;
+                        if(isFloating) player.dom.player.classList.add('video-floating');
+                        
+                        videoFloatingToggle.addEventListener('change', (e) => {
+                            const floating = e.target.checked;
+                            localStorage.setItem('oss_music_player_video_floating', floating);
+                            if(floating) {
+                                player.dom.player.classList.add('video-floating');
+                            } else {
+                                player.dom.player.classList.remove('video-floating');
+                            }
+                        });
+                    }
 
                     const savedShuffle = localStorage.getItem('oss_music_player_isShuffle') === 'true';
                     const savedVolume = parseFloat(localStorage.getItem('oss_music_player_volume')) || 0.2;
