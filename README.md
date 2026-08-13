@@ -9,7 +9,7 @@
 ![Stars](https://img.shields.io/github/stars/Pekly/modern-html5-music-player?style=social)
 ![Last Commit](https://img.shields.io/github/last-commit/Pekly/modern-html5-music-player)
 ![Repo Size](https://img.shields.io/github/repo-size/Pekly/modern-html5-music-player)
-![Version](https://img.shields.io/badge/Version-A26.5.1-blue)
+![Version](https://img.shields.io/badge/Version-A26.8.13-blue)
 
 ---
 
