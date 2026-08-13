@@ -17,6 +17,11 @@
             --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #666; }
+
         body {
             font-family: var(--font-stack);
             background-color: var(--bg-color);
@@ -82,16 +87,17 @@
             font-weight: 600;
             white-space: nowrap;
             display: inline-block;
+            flex-shrink: 0;
         }
         
         #track-title.overflowing {
-            animation: marquee 8s linear infinite;
-            padding-right: 40px;
+            animation: scroll-back-forth 5s ease-in-out infinite alternate;
+            padding-right: 0;
         }
         
-        @keyframes marquee {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
+        @keyframes scroll-back-forth {
+            0%, 15% { transform: translateX(0); }
+            85%, 100% { transform: translateX(var(--overflow-width, -10px)); }
         }
 
         #track-artist {
@@ -189,35 +195,63 @@
         }
 
         .p-item {
-            padding: 10px 15px;
             font-size: 0.85rem;
-            border-bottom: 1px solid #333;
+            border-bottom: 1px solid #222;
             cursor: pointer;
+            transition: background 0.2s;
+            counter-increment: track-counter;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .p-item-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.25);
+            z-index: 1;
+            transition: filter 0.3s;
+        }
+
+        .p-item:hover .p-item-bg {
+            filter: brightness(0.4);
+        }
+
+        .p-item.active .p-item-bg {
+            filter: brightness(0.5);
+        }
+        
+        .p-item-content {
+            position: relative;
+            z-index: 2;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: background 0.2s;
-            counter-increment: track-counter;
+            padding: 10px 15px;
+            width: 100%;
+            box-sizing: border-box;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
         
-        .p-item::before {
+        .p-item-counter::before {
             content: counter(track-counter) ".";
             font-size: 0.75rem;
-            color: var(--text-sub);
+            color: #ddd;
             min-width: 16px;
+            display: inline-block;
         }
         
-        .p-item.active::before {
+        .p-item.active .p-item-counter::before {
             content: "▶";
             color: var(--accent);
         }
 
-        .p-item:hover { background: rgba(255,255,255,0.1); }
-        .p-item.active { color: var(--accent); font-weight: bold; background: rgba(29, 185, 84, 0.1); }
         .p-item:last-child { border-bottom: none; }
         
         .p-item-title {
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1;
+            color: #fff;
         }
 
         .queue-icon {
@@ -270,13 +304,67 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let songs = [
-                { title: 'Resonance', artist: 'Home', url: 'https://od.lk/s/OTdfOTQzNzY2NjFf/HOME%20Resonance.mp3', cover: 'https://f4.bcbits.com/img/a3321951232_10.jpg' },
+                { title: 'Let It Happen', artist: 'Tame Impala', url: 'https://od.lk/s/OTdfMTAzNjMyODgwXw/Tame%20Impala%20-%20Let%20It%20Happen%20%28Official%20Video%29-1280x720-avc1-mp4a.mp4', cover: 'https://cdn-images.dzcdn.net/images/cover/de5b9b704cd4ec36f8bf49beb3e17ba2/1900x1900-000000-80-0-0.jpg' },
+                { title: 'Resonance', artist: 'Home', url: 'https://od.lk/s/OTdfOTQzNzY2NjFf/HOME%20Resonance.mp3', cover: 'https://i.scdn.co/image/ab67616d0000b273f421e4ca838fe19d8cdf934a' },
                 { title: 'Miku', artist: 'Anamanaguchi', url: 'https://od.lk/s/OTdfOTQ0MDAyODdf/Miku%20by%20Anamanaguchi%20Lyrics%20Video.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F379dd3f911ddadfb3da8387069fdfd51.1000x1000x1.png' },
                 { title: 'Memory Reboot', artist: 'VØJ, Narvent', url: 'https://od.lk/s/OTdfOTQzNzY5MjRf/V%C3%98J%20Narvent%20Memory%20Reboot%204K%20Music%20Video.mp3', cover: 'https://i1.sndcdn.com/artworks-8zY79hHzgzoNqx9O-qPGziw-t500x500.jpg' },
-                { title: 'Pretty Girl', artist: 'Clairo', url: 'https://od.lk/s/OTdfOTQzNzY3Mjlf/Clairo%20Pretty%20Girl%20slowed%20reverb.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F188096681dc237e27d7f3e8dcb1a9145.1000x1000x1.jpg' }
+                { title: 'Pretty Girl', artist: 'Clairo', url: 'https://od.lk/s/OTdfOTQzNzY3Mjlf/Clairo%20Pretty%20Girl%20slowed%20reverb.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F188096681dc237e27d7f3e8dcb1a9145.1000x1000x1.jpg' },
+                { title: 'menu', artist: 'nicopatty', url: 'https://od.lk/s/OTdfOTQzODA1MzBf/nico%20s%20nextbots%20ost%20menu.mp3', cover: 'https://i.scdn.co/image/ab67616d00001e02199a52950442425d19d81aa8' },
+                { title: 'Airplane Mode', artist: 'Limbo', url: 'https://od.lk/s/OTdfOTQ0MDA1NDNf/Airplane%20Mode%20Limbo%20Lyrics.mp3', cover: 'https://i.scdn.co/image/ab67616d0000b2730b08855f940277500e090ae5' },
+                { title: 'Sports', artist: 'Beach Bunny', url: 'https://od.lk/s/OTdfOTQzODAzNzVf/Beach%20Bunny%20Sports%20Official%20Audio.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fddaa4d18b3ce067a20f95d4a5a662819.1000x1000x1.jpg' },
+                { title: 'Dream Space', artist: 'DVRST', url: 'https://od.lk/s/OTdfOTk2NTAxMDJf/DVRST%20-%20Dream%20Space.mp4', cover: 'https://i1.sndcdn.com/artworks-xBF9BLLAysdb1WLv-oNF5eQ-t1080x1080.jpg' },
+                { title: "I Can't Fix You", artist: 'The Living Tombstone & Crusher-P', url: 'https://od.lk/s/OTdfOTQ0MTcxMDZf/Five%20Nights%20at%20Freddys%20Sister%20Location%20Song%20I%20Can%E2%80%99t%20Fix%20You%20FNAFSL%20The%20Living%20Tombstone%20Crusher%20P%20%281%29.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F369efead1cd0fad3fbf861b8a9e377a2.1000x1000x1.png' },
+                { title: 'Until I End Up Dead', artist: 'Dream', url: 'https://od.lk/s/OTdfOTQ0MTcxMTJf/The%20Duel.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F2a75621d3484b42cb2ad5321d04e892c.1000x1000x1.png' },
+                { title: 'Mis', artist: 'Alex G', url: 'https://od.lk/s/OTdfOTQ0MjQ3NzJf/Mis.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F477284959a634a8ae91ab4983d786003.1000x1000x1.png' },
+                { title: 'Wasted Summers', artist: 'Juju<3', url: 'https://od.lk/s/OTdfOTQ0MjQ3NzRf/juju%20Wasted%20Summers%20Official%20Music%20Video.mp3', cover: 'https://t2.genius.com/unsafe/379x379/https%3A%2F%2Fimages.genius.com%2Fc59b284ed224372ddb05ef3e38c60657.1000x1000x1.png' },
+                { title: 'See You Again', artist: 'Tyler, The Creator', url: 'https://od.lk/s/OTdfOTQ0MjQ3Nzdf/SEE%20YOU%20AGAIN%20featuring%20Kali%20Uchis.mp3', cover: 'https://t2.genius.com/unsafe/300x300/https%3A%2F%2Fimages.genius.com%2F657250fbf21b4b4814e4bbab1b2000b5.1000x1000x1.jpg' },
+                { title: 'Not Allowed', artist: 'TV Girl', url: 'https://od.lk/s/OTdfOTQ1MTQ2Mzhf/TV-Girl_Not-Allowed.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F53b0f609e5d9a3aecb36b7000aeba3b0.1000x1000x1.jpg' },
+                { title: 'Mrs Magic', artist: 'Strawberry Guy', url: 'https://od.lk/s/OTdfOTQ0MjQ8MDNf/Strawberry%20Guy%20Mrs%20Magic.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fce5c2f7499d51bc41c482b468711977c.1000x1000x1.jpg' },
+                { title: 'Ayo', artist: 'Vandebo X Bold', url: 'https://od.lk/s/OTdfOTQ1MTQyMTdf/Vandebo%20X%20Bold%20AYO%20Official%20Music%20Video.mp3', cover: 'https://s.mxmcdn.net/images-storage/albums2/3/4/3/4/4/1/47144343_350_350.jpg' },
+                { title: 'Cigarettes out the Window', artist: 'TV Girl', url: 'https://od.lk/s/OTdfOTQ1MTQ4NjBf/TV-Girl-Cigarettes-out-the-Window.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F53b0f609e5d9a3aecb36b7000aeba3b0.1000x1000x1.jpg' },
+                { title: 'Basics In Behavior', artist: 'The Living Tombstone', url: 'https://od.lk/s/OTdfOTk2NTAwNDNf/Basics%20in%20Behavior.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fef375e81acd13b970c57a895bb207513.1000x1000x1.png' },
+                { title: 'Po Pi Po', artist: 'Hatsune Miku', url: 'https://od.lk/s/OTdfOTk2NTg2NjZf/%E3%80%90%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF%E3%80%91%E3%81%BD%E3%81%A3%E3%81%B4%E3%81%A3%E3%81%BD%E3%83%BC%20-%20Po%20pi%20po%20%20Miku%20Hatsune%20Vegetable%20Juice%20Dance.mp4', cover: 'https://static.wikia.nocookie.net/project-diva/images/a/ad/Po_Pi_Po_illustration.jpg' },
+                { title: 'GONE, GONE / THANK YOU', artist: 'Tyler, The Creator', url: 'https://od.lk/s/OTdfOTQ1NDc0MDJf/Tyler-The-Creator-GONE-GONE-THANK-YOU.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F99d79385685ab3a4b7a7ccbc6fd27310.1000x1000x1.png' },
+                { title: 'Last Shot', artist: 'VALORANT, templuv & 347aidan', url: 'https://od.lk/s/OTdfOTk2NTg2NDRf/Last%20Shot%20ft.%20templuv%20%26%20347aidan%20%28Official%20Music%20Video%29%20__%20VALORANT%20Champions%202025.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F5f178d4f2c31f465a41d2fc266ef88ca.1000x1000x1.png' },
+                { title: 'BUTCHER VANITY', artist: 'Vane Lily', url: 'https://od.lk/s/OTdfOTk2NTg2MjFf/BUTCHER%20VANITY%20ft.%20Yi%20Xi.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F186696c44d6d3d877c2af2f6f8f30c88.1000x1000x1.png' },
+                { title: 'Loser', artist: 'Tame Impala', url: 'https://od.lk/s/OTdfOTQ3NDA1NTJf/Tame%20Impala%20-%20Loser.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F300ec7717ac005a948dc5fc76bc7e1a2.1000x1000x1.png' },
+                { title: 'this is what autumn feels like', artist: 'JVKE', url: 'https://od.lk/s/OTdfOTk2OTgwMDZf/JVKE%20this%20is%20what%20autumn%20feels%20like.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F02e5f0a271f47c34d7e0619cf38d77fa.1000x1000x1.png' },
+                { title: 'Let You Down', artist: 'Dawid Podsiadlo', url: 'https://od.lk/s/OTdfOTk3NjY4NzFf/Cyberpunk%20Edgerunners%20%E2%80%94%20Ending%20Theme%20%20Let%20You%20Down%20by%20Dawid%20Podsiad%C5%82o%20%20Netflix.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Ff7187d9a6b515b692fa46dda8f62841b.1000x1000x1.png' },
+                { title: 'Mesmerizer', artist: 'Hatsune Miku＆Kasane Teto', url: 'https://od.lk/s/OTdfOTk3NjY4NzNf/%E3%83%A1%E3%82%BA%E3%83%9E%E3%83%A9%E3%82%A4%E3%82%B6%E3%83%BC%20%20%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF%E3%83%BB%E9%87%8D%E9%9F%B3%E3%83%86%E3%83%88SV.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fe5f9b172bc5baacc50441ef12fc54109.600x600x1.jpg' },
+                { title: 'WILD SIDE', artist: 'ALI', url: 'https://od.lk/s/OTdfOTk3NjY4NzVf/TV%E3%82%A2%E3%83%8B%E3%83%A1%E3%80%8CBEASTARS%E3%80%8D%E3%83%8E%E3%83%B3%E3%82%AF%E3%83%AC%E3%82%B8%E3%83%83%E3%83%88%20OP.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9b8c1b9789d219b09a4c658cf77b2360.1000x1000x1.png' },
+                { title: 'sherbet lobby', artist: 'bxnji, nicopatty', url: 'https://od.lk/s/OTdfOTk3NjY5MDZf/nico%27s%20nextbots%20ost%20-%20sherbet%20lobby%20w%20bxnji.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9af9354df5b2cb3871f1a6c31b47bfd6.1000x1000x1.png' },
+                { title: '勇者', artist: 'YOASOBI', url: 'https://od.lk/s/OTdfOTk5NDQ4NTRf/YOASOBI%E3%80%8C%E5%8B%87%E8%80%85%E3%80%8D%20Official%20Music%20Video%EF%BC%8FTV%E3%82%A2%E3%83%8B%E3%83%A1%E3%80%8E%E8%91%AC%E9%80%81%E3%81%AE%E3%83%95%E3%83%AA%E3%83%BC%E3%83%AC%E3%83%B3%E3%80%8F%E3%82%AA%E3%83%BC%E3%83%97%E3%83%8B%E3%83%B3%E3%82%B0%E3%83%86%E3%83%BC%E3%83%9E.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9655749c805a20617146645d2694c09b.1000x1000x1.png' },
+                { title: '少女A', artist: 'siinamota', url: 'https://od.lk/s/OTdfOTk5NDQ4ODhf/%E5%B0%91%E5%A5%B3A.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F50ce48a89abbde006b424f8e9db61701.1000x1000x1.png' },
+                { title: 'so bitter', artist: 'Stxlkin', url: 'https://od.lk/s/OTdfOTk5NzIwOTNf/Stxlkin%20so%20bitter%20Lyrics.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F154e06047f91726c89d45abf3b2081a0.1000x1000x1.png' },
+                { title: 'PPPP', artist: 'TAK feat. Hatsune Miku, Kasane Teto', url: 'https://od.lk/s/OTdfOTk5NzIwNTBf/%5BMV%5D%20TAK%20-%20%E2%80%98PPPP%E2%80%99%20feat.%20%E5%88%9D%E9%9F%B3%E3%83%9F%E3%82%AF%E3%80%81%E9%87%8D%E9%9F%B3%E3%83%86%E3%83%88.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fa0c4bda4d79685234be9da1b67bf7bb3.1000x1000x1.png' },
+                { title: 'My Ordinary Life', artist: 'The Living Tombstone', url: 'https://od.lk/s/OTdfOTk5NzIwNjhf/My%20Ordinary%20Life-The%20Living%20Tombstone.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F54fa70e9c0a41d9531f5da6c0755fefc.1000x1000x1.png' },
+                { title: 'Mephisto', artist: 'Queen Bee', url: 'https://od.lk/s/OTdfOTk5NzIwOTBf/%E3%80%90%E6%8E%A8%E3%81%97%E3%81%AE%E5%AD%90%E3%80%91%E3%83%8E%E3%83%B3%E3%82%AF%E3%83%AC%E3%82%B8%E3%83%83%E3%83%88%E3%82%A8%E3%83%B3%E3%83%87%E3%82%A3%E3%83%B3%E3%82%B0%EF%BD%9C%E5%A5%B3%E7%8E%8B%E8%9C%82%E3%80%8C%E3%83%A1%E3%83%95%E3%82%A3%E3%82%B9%E3%83%88%E3%80%8D.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F598be510aaab54e5106764178fdd55bb.1000x1000x1.png' },
+                { title: 'W', artist: 'Koffee Ft. Gunna', url: 'https://od.lk/s/OTdfMTAwMDAzOTA2Xw/Koffee%20W%20Lyrics%20Feat.Gunna.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F038fdb942e7320866bcdd5f7c4e6f1c5.1000x1000x1.jpg' },
+                { title: 'It Might Be Painful, but I Still Love It.', artist: 'TUYU', url: 'https://od.lk/s/OTdfMTAwMDAzODg2Xw/%E3%83%84%E3%83%A6%20-%20%E5%82%B7%E3%81%A4%E3%81%91%E3%81%A9%E3%80%81%E6%84%9B%E3%81%97%E3%81%A6%E3%82%8B%E3%80%82%20MV.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Ff2f67851068138680e6c54046f9d34c3.1000x1000x1.png' },
+                { title: 'Die For You', artist: 'VALORANT ft. Grabbitz', url: 'https://od.lk/s/OTdfMTAwMDAzODkxXw/Die%20For%20You%20ft.%20Grabbitz%20__%20Official%20Music%20Video%20__%20VALORANT%20Champions%202021.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F580d81a058d544f627b3f8ecf3866add.1000x1000x1.png' },
+                { title: 'No Mercy', artist: 'The Living Tombstone', url: 'https://od.lk/s/OTdfMTAwMDAzODk5Xw/OVERWATCH_%20No%20Mercy%20-%20The%20Living%20Tombstone.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F4cb8fedd3538be331b9093ee3c837348.1000x1000x1.png' },
+                { title: 'next to you', artist: 'Øneheart', url: 'https://od.lk/s/OTdfMTAwMDAzOTE4Xw/%C3%98neheart%20-%20next%20to%20you%20%5BOfficial%20Video%5D.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F2e42d74a39bee068e6295180e7dfa894.500x500x1.jpg' },
+                { title: 'Too Deep', artist: 'Vandebo', url: 'https://od.lk/s/OTdfMTAwNTM0NzkxXw/MagGod%20%26%20Vandebo%20-%20Too%20Deep.mp4', cover: 'https://s.mxmcdn.net/images-storage/albums2/0/1/6/4/1/0/50014610_500_500.jpg' },
+                { title: 'this is what winter feels like', artist: 'JVKE', url: 'https://od.lk/s/OTdfMTAwNTI1MDUxXw/JVKE%20-%20this%20is%20what%20winter%20feels%20like%20%28official%20lyric%20video%29.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F073593c8907dfdcc3eaf79006a8c8501.1000x1000x1.png' },
+                { title: '怪物', artist: 'YOASOBI', url: 'https://od.lk/s/OTdfMTAwNTI1MTYzXw/YOASOBI%E3%80%8C%E6%80%AA%E7%89%A9%E3%80%8DOfficial%20Music%20Video%E3%80%80%28YOASOBI%20-%20Monster%29.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F3c1cfc9894992b89654841ccbbb4559c.1000x1000x1.jpg' },
+                { title: 'Suuliin uyanga', artist: 'The Lemons', url: 'https://od.lk/s/OTdfMTAwNTI1MjI0Xw/The%20Lemons%20Suuliin%20uyanga.mp3', cover: 'https://i1.sndcdn.com/artworks-000128769099-7t3u3h-t500x500.jpg' },
+                { title: 'METAMORPHOSIS', artist: 'INTERWORLD', url: 'https://od.lk/s/OTdfMTAxNjkzMzk2Xw/INTERWORLD%20METAMORPHOSIS.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F2f6e4b7444503feda893f8d6a23e29fa.720x720x1.png' },
+                { title: 'Bad Habit', artist: 'Steve Lacy', url: 'https://od.lk/s/OTdfMTAxNjkxMTk0Xw/Steve%20Lacy%20-%20Bad%20Habit%20%28Official%20Video%29-1280x720-avc1-mp4a.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F48ad06b7c45c448ae15e07b84b2a1ada.1000x1000x1.png' },
+                { title: 'all I want is you', artist: 'Rebzyyx', url: 'https://od.lk/s/OTdfMTAxNjkyODcwXw/Rebzyyx%20-%20all%20i%20want%20is%20you%20%28Official%20Audio%29-854x480-avc1-mp4a.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F314b5e9b4b52df169dbebafc75e77d29.1000x1000x1.png' },
+                { title: 'her', artist: 'JVKE', url: 'https://od.lk/s/OTdfMTAxNjkzMTc1Xw/JVKE%20-%20her%20%28official%20lyric%20video%29-854x480-mp4a.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F9d2f55852c9251fd061a3ba2c83a5e6f.1000x1000x1.png' },
+                { title: 'Resonance (432 hz)', artist: 'HOME', url: 'https://od.lk/s/OTdfMTAxNjk3Mzk4Xw/HOME%20-%20resonance%20%28432%20hz%29%20%28slowed%20%2B%20reverb%29-640x360-avc1-mp4a.mp4', cover: 'https://i.ibb.co/wh8mdynL/501-B20-EA-3-DCB-44-C8-88-AA-D2263131475-C.png' },
+                { title: 'RYD / DARK RED', artist: 'Steve Lacy', url: 'https://od.lk/s/OTdfMTAzNTM0MzczXw/STEVE%20LACY%20-%20RYD%20%20DARK%20RED-1280x720-mp4a.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F279020677b1aa8239693c06991129c5b.1000x1000x1.png' },
+                { title: 'Alternative Outro', artist: 'LUCKI', url: 'https://od.lk/s/OTdfMTAzNTM0MzgxXw/Alternative%20Outro.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Fc6d2ed637efcb81a56774364669c6698.999x999x1.png' },
+                { title: 'Buruugui', artist: 'Vandebo', url: 'https://od.lk/s/OTdfMTAzNTM0NDAwXw/Vandebo%20-%20Buruugui%20%28Official%20Music%20Video%29%20prod.by%20976Beatz_10_192.mp4', cover: 'https://i.scdn.co/image/ab67616d0000b273309ad44293fbeba6ecddb54d' },
+                { title: 'Beanie', artist: 'Chezile', url: 'https://od.lk/s/OTdfMTAzNTM0NDAxXw/Chezile%20-%20Beanie-640x360-avc1-mp4a.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F98635c01146e2c911b8f4cfbd3361e1a.1000x1000x1.png' },
+                { title: 'My Time', artist: 'bo en', url: 'https://od.lk/s/OTdfMTAzNTM0NDA2Xw/bo%20en%20-%20my%20time.mp3', cover: 'https://f4.bcbits.com/img/a2864966444_5.jpg' },
+                { title: 'the feeling', artist: 'Steve Lacy', url: 'https://od.lk/s/OTdfMTAzNjE1NDIyXw/Steve%20Lacy%20-%20the%20feeling%20%28Official%20Video%29-1280x720-avc1-opus.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2F79e53f1fc433ef0c1abf3846dc6ee251.1000x1000x1.png' },
+                { title: 'Finesse (Remix)', artist: 'Bruno Mars feat. Cardi B', url: 'https://od.lk/s/OTdfMTAzNjE1OTQxXw/Bruno%20Mars%20-%20Finesse%20%28Remix%29%20%28feat.%20Cardi%20B%29%20%28Official%20Music%20Video%29-854x480-avc1-mp4a.mp4', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Ff6f0261cef5bf1b13fffa6b56dfab9cd.1000x1000x1.png' },
+                { title: 'PRIDE.', artist: 'Kendrick Lamar', url: 'https://od.lk/s/OTdfMTAzNjE1OTU3Xw/Kendrick%20Lamar%20-%20PRIDE..mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Ff3f77222e1b615e0a10354ea6282ff22.1000x1000x1.png' },
+                { title: 'A New Kind of Love', artist: 'Frou Frou', url: 'https://od.lk/s/OTdfMTAzNjIwODc2Xw/Frou%20Frou%20-%20A%20New%20Kind%20of%20Love%20%28Lyrics%29%20%20Are%20ya%20falling%20in%20love%20%20I%27ve%20a%20feeling%20you%20are.mp3', cover: 'https://t2.genius.com/unsafe/344x344/https%3A%2F%2Fimages.genius.com%2Ffb07c9940ab13f5aeebcfcbaa553a5ab.1000x1000x1.jpg' },
             ];
 
-            let state = { idx: 0, isPlaying: false };
+            let state = { idx: 0, isPlaying: false, queuedTracks: [] };
 
             const els = {
                 player: document.getElementById('music-player'),
@@ -308,13 +396,20 @@
                 state.idx = index;
                 const song = songs[index];
                 
+                const qIndex = state.queuedTracks.indexOf(song.url);
+                if (qIndex !== -1) {
+                    state.queuedTracks.splice(qIndex, 1);
+                }
+                
                 if(els.title) {
                     els.title.classList.remove('overflowing');
+                    els.title.style.removeProperty('--overflow-width');
                     els.title.textContent = song.title;
                     requestAnimationFrame(() => {
                         if (els.title.scrollWidth > els.title.parentElement.offsetWidth) {
-                            els.title.textContent = song.title + ' \u00A0\u00A0\u00A0 ' + song.title;
                             els.title.classList.add('overflowing');
+                            const diff = els.title.scrollWidth - els.title.parentElement.offsetWidth + 10;
+                            els.title.style.setProperty('--overflow-width', `-${diff}px`);
                         }
                     });
                 }
@@ -380,17 +475,32 @@
                     el.className = `p-item ${i === state.idx ? 'active' : ''}`;
                     
                     const playCountHtml = counts[s.url] >= 3 ? `<span style="margin-left:6px;font-size:0.8rem;">🔥</span>` : '';
-                    const queueIconHtml = i !== state.idx ? `<i class="fas fa-level-down-alt queue-icon"></i>` : '';
                     
-                    el.innerHTML = `<div class="p-item-title">${s.title}${playCountHtml}</div>${queueIconHtml}`;
+                    const qIndex = state.queuedTracks.indexOf(s.url);
+                    let queueIconHtml = '';
+                    if (qIndex !== -1) {
+                        queueIconHtml = `<div class="queue-icon queued-badge" style="background:var(--accent); color:var(--bg-color); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:0.7rem; font-weight:bold; cursor:pointer; opacity:1;">${qIndex + 1}</div>`;
+                    } else if (i !== state.idx) {
+                        queueIconHtml = `<i class="fas fa-level-down-alt queue-icon" title="Play Next"></i>`;
+                    }
+                    
+                    el.innerHTML = `
+                        <div class="p-item-bg" style="background-image: url('${s.cover}')"></div>
+                        <div class="p-item-content">
+                            <div class="p-item-counter"></div>
+                            <div class="p-item-title">${s.title}${playCountHtml}</div>
+                            ${queueIconHtml}
+                        </div>
+                    `;
                     
                     el.onclick = (e) => {
-                        if (e.target.classList.contains('queue-icon')) {
+                        if (e.target.closest('.queue-icon')) {
                             e.stopPropagation();
-                            const songToQueue = songs.splice(i, 1)[0];
-                            const insertAt = state.idx + 1;
-                            songs.splice(insertAt, 0, songToQueue);
-                            if (i < state.idx) state.idx--;
+                            if (qIndex !== -1) {
+                                state.queuedTracks.splice(qIndex, 1);
+                            } else {
+                                state.queuedTracks.push(s.url);
+                            }
                             renderPlaylist();
                         } else {
                             loadTrack(i, true);
@@ -415,10 +525,22 @@
                 }
             }
 
+            function playNext() {
+                if (state.queuedTracks.length > 0) {
+                    const nextUrl = state.queuedTracks.shift();
+                    const nextIndex = songs.findIndex(t => t.url === nextUrl);
+                    if (nextIndex !== -1) {
+                        loadTrack(nextIndex, true);
+                        return;
+                    }
+                }
+                loadTrack(state.idx + 1, true);
+            }
+
             function setupEvents() {
                 if(els.playBtn) els.playBtn.onclick = togglePlay;
                 if(els.prevBtn) els.prevBtn.onclick = () => loadTrack(state.idx - 1, true);
-                if(els.nextBtn) els.nextBtn.onclick = () => loadTrack(state.idx + 1, true);
+                if(els.nextBtn) els.nextBtn.onclick = playNext;
                 
                 if(els.listBtn) els.listBtn.onclick = () => {
                     if(els.modal) els.modal.classList.toggle('show');
@@ -428,6 +550,9 @@
                     if(els.player) {
                         els.player.classList.toggle('hidden');
                         updateToggleIcon();
+                        if(els.player.classList.contains('hidden') && els.modal) {
+                            els.modal.classList.remove('show');
+                        }
                     }
                 };
                 
@@ -443,7 +568,7 @@
                         counts[songs[state.idx].url] = (counts[songs[state.idx].url] || 0) + 1;
                         localStorage.setItem('lite_play_counts', JSON.stringify(counts));
                         
-                        loadTrack(state.idx + 1, true);
+                        playNext();
                     };
                 }
 
@@ -457,3 +582,4 @@
     </script>
 </body>
 </html>
+
