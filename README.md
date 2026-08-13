@@ -35,18 +35,20 @@ It includes a responsive UI, real-time visualizer, playlist search, theme switch
 - 🔊 Audio Visualizer, real-time frequency bars using the Web Audio API
 - 🎵 Audio + Video Support, supports `.mp3` and `.mp4` playlist items
 - 🎚️ Full Playback Controls, play, pause, previous, next, volume, and draggable timeline
-- ⚡ Speed Control, switch between `1x`, `1.25x`, `1.5x`, and `2x`
+- ⚡ Speed Control, switch between `1x`, `1.25x`, `1.5x`, and `0.85x`
+- 🎛️ Reverb Effect, toggleable Web Audio reverb for a spacier sound
+- 🖼️ Video Docking Mode, floats video playback above the player instead of playing it inline
 - 🔀 Shuffle + Repeat, available from the playlist modal
 - ❤️ Favorites System, like songs and filter favorites
 - 🔍 Searchable Playlist, find songs by title or artist
-- 📌 Play Next Queue, send any playlist item to play next
+- 📌 Persistent Queue, queue any playlist item with a numbered badge, or auto-queue the rest of a filtered search
 - 🔥 Play Count Badge, highlights songs played multiple times
 - 🎬 Video Badges, marks playlist items that use video files
 - 🧩 Settings Modal, theme switching moved into a cleaner settings panel
 - 🌈 Multiple Themes, Spotify Dark, Arctic Light, Cyberpunk, Sunset, Hacker Terminal, and Vaporwave
 - 💤 Sleep Timer, cycle between 15, 30, and 60 minutes
 - ⌨️ Keyboard Shortcuts, quick control without using the mouse
-- 💾 Persistent State, remembers theme, volume, shuffle, repeat, favorites, and last track
+- 💾 Persistent State, remembers theme, volume, shuffle, repeat, favorites, reverb, video docking, and last track
 - 🪄 Collapsible Interface, minimize into a small floating music button
 - ♿ Accessible Controls, includes ARIA labels and media session support
 - 🧩 Single-File Design, HTML, CSS, and JavaScript in one file
@@ -124,8 +126,8 @@ Make sure the `src` path points to your real player file.
 
 Use this if you want deeper control over the player.
 
-1. Copy the external `<link>` tags from `music_player.html` into your site’s `<head>`.
-2. Copy the `<style>` block into your CSS file or inside your site’s `<head>`.
+1. Copy the external `<link>` tags from `music_player.html` into your site's `<head>`.
+2. Copy the `<style>` block into your CSS file or inside your site's `<head>`.
 3. Place the player HTML before your closing `</body>` tag.
 4. Place the `<script>` code after the player HTML.
 
@@ -197,6 +199,7 @@ const playerConfig = {
   enableSleepTimer: true,
   enableThemeSwitcher: true,
   enableLikeSystem: true,
+  enableReverb: true,
   defaultTheme: 'spotify',
   themes: {
     // theme objects here
@@ -215,6 +218,7 @@ const playerConfig = {
 | `enableSleepTimer`    | boolean | Shows or hides the sleep timer           |
 | `enableThemeSwitcher` | boolean | Enables the settings theme list          |
 | `enableLikeSystem`    | boolean | Enables favorites and favorite filtering |
+| `enableReverb`        | boolean | Shows or hides the reverb toggle         |
 | `defaultTheme`        |  string | Sets the default theme key               |
 
 ---
@@ -284,6 +288,8 @@ Saved values include:
 * Repeat mode
 * Favorite songs
 * Play counts
+* Reverb setting
+* Video docking setting
 * GitHub promo dismissal
 
 Main storage keys:
@@ -296,6 +302,8 @@ oss_music_player_isShuffle
 oss_music_player_repeatMode
 oss_music_player_favorites
 oss_play_counts
+oss_music_player_reverb
+oss_music_player_video_floating
 oss_music_player_promo_seen
 ```
 
@@ -333,7 +341,7 @@ Recommended:
 
 Some features depend on browser support:
 
-* Web Audio API for the visualizer
+* Web Audio API for the visualizer and reverb effect
 * Media Session API for system media controls
 * HTML5 video playback for `.mp4` tracks
 * `localStorage` for saved preferences
