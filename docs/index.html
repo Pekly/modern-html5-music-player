@@ -320,7 +320,7 @@
 
         input[type=range] { -webkit-appearance: none; background: transparent; width: 100%; margin: 0; padding: 0; }
         input[type=range]:focus { outline: none; }
-        input[type=range]::-webkit-slider-runnable-track { height: 4px; background: #535353; border-radius: 2px; transition: background 0.2s ease; }
+        input[type=range]::-webkit-slider-runnable-track { -webkit-appearance: none; height: 4px; background: #535353; border-radius: 2px; transition: background 0.2s ease; }
         input[type=range]:hover::-webkit-slider-runnable-track { background: var(--highlight-color); }
         
         input[type=range]::-webkit-slider-thumb {
@@ -1467,17 +1467,21 @@
                 });
                 
                 player.audio.addEventListener('loadedmetadata', () => { if(player.dom.totalDurationEl) player.dom.totalDurationEl.textContent = formatTime(player.audio.duration); });
-                player.audio.addEventListener('timeupdate', () => {
-                    if (player.audio.duration) {
-                        if(player.dom.timelineSlider) player.dom.timelineSlider.value = (player.audio.currentTime / player.audio.duration) * 100;
-                        if(player.dom.currentTimeEl) player.dom.currentTimeEl.textContent = formatTime(player.audio.currentTime);
-                    }
-                });
-                if(player.dom.timelineSlider) {
-                    player.dom.timelineSlider.addEventListener('input', (e) => { if (player.audio.duration) player.audio.currentTime = (e.target.value / 100) * player.audio.duration; });
-                    player.dom.timelineSlider.addEventListener('mousedown', () => player.dom.timelineSlider.classList.add('grabbing'));
-                    player.dom.timelineSlider.addEventListener('mouseup', () => player.dom.timelineSlider.classList.remove('grabbing'));
-                }
+                  let isDraggingSlider = false;
+                  player.audio.addEventListener('timeupdate', () => {
+                      if (player.audio.duration) {
+                          if(player.dom.timelineSlider && !isDraggingSlider) player.dom.timelineSlider.value = (player.audio.currentTime / player.audio.duration) * 100;
+                          if(player.dom.currentTimeEl) player.dom.currentTimeEl.textContent = formatTime(player.audio.currentTime);
+                      }
+                  });
+                  if(player.dom.timelineSlider) {
+                      player.dom.timelineSlider.style.webkitAppearance = 'none';
+                      player.dom.timelineSlider.addEventListener('input', (e) => { if (player.audio.duration) player.audio.currentTime = (e.target.value / 100) * player.audio.duration; });
+                      player.dom.timelineSlider.addEventListener('mousedown', () => { isDraggingSlider = true; player.dom.timelineSlider.classList.add('grabbing'); });
+                      window.addEventListener('mouseup', () => { isDraggingSlider = false; if(player.dom.timelineSlider) player.dom.timelineSlider.classList.remove('grabbing'); });
+                      player.dom.timelineSlider.addEventListener('touchstart', () => { isDraggingSlider = true; }, {passive: true});
+                      window.addEventListener('touchend', () => { isDraggingSlider = false; });
+                  }
 
                 if (player.dom.reverbBtn && playerConfig.enableReverb) {
                     const savedReverb = localStorage.getItem('oss_music_player_reverb') === 'true';
