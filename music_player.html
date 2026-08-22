@@ -619,6 +619,54 @@
             #music-player:not(:hover) input[type=range]::-webkit-slider-thumb { opacity: 0; }
         }
 
+        /* === Drag & Drop Reordering === */
+        .playlist-song { transition: background-color 0.2s, box-shadow 0.2s ease; }
+
+        .drag-handle {
+            color: var(--secondary-text);
+            opacity: 0;
+            font-size: 0.65rem;
+            cursor: grab;
+            transition: opacity 0.2s, color 0.2s;
+            padding: 10px 6px;
+            flex-shrink: 0;
+            touch-action: none;
+            user-select: none;
+            margin-left: -4px;
+        }
+        .playlist-song:hover .drag-handle { opacity: 0.4; }
+        .drag-handle:hover { opacity: 1 !important; color: var(--primary-text); }
+        .drag-handle:active { cursor: grabbing; }
+
+        .playlist-song.dragging {
+            opacity: 0.2;
+            background: transparent !important;
+        }
+
+        .playlist-song.drag-over-top {
+            box-shadow: 0 -2px 0 0 var(--highlight-color);
+        }
+        .playlist-song.drag-over-bottom {
+            box-shadow: 0 2px 0 0 var(--highlight-color);
+        }
+
+        .drag-ghost {
+            position: fixed;
+            z-index: 10000;
+            pointer-events: none;
+            opacity: 0.92;
+            transform: scale(1.03) rotate(0.8deg);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--highlight-color);
+            border-radius: 6px;
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px) saturate(180%);
+            overflow: hidden;
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            .drag-handle { opacity: 0.3; }
+        }
+
         @media (min-width: 768px) {
             #music-player {
                 right: auto;
@@ -1587,6 +1635,8 @@
 
                 function populatePlaylistModal(songsToDisplay = player.playlist) {
                     if(!player.dom.playlistContainer) return;
+                    const existingGhost = document.querySelector('.drag-ghost');
+                    if (existingGhost) existingGhost.remove();
                     player.dom.playlistContainer.innerHTML = '';
                     
                     if (songsToDisplay.length === 0) {
@@ -1595,6 +1645,8 @@
                     }
 
                     const counts = JSON.parse(localStorage.getItem('oss_play_counts') || '{}');
+                    const isFiltered = (player.dom.playlistSearch && player.dom.playlistSearch.value.trim() !== '') || 
+                                       (player.dom.filterFavBtn && player.dom.filterFavBtn.classList.contains('active'));
 
                     songsToDisplay.forEach((song) => {
                         const originalIndex = player.playlist.findIndex(pSong => pSong.url === song.url);
@@ -1619,7 +1671,9 @@
                             queueIconHtml = `<i class="fas fa-level-down-alt queue-icon" title="Play Next"></i>`;
                         }
 
+                        const dragHandleHtml = isFiltered ? '' : '<i class="fas fa-grip-vertical drag-handle" title="Drag to reorder"></i>';
                         songEl.innerHTML = `
+                            ${dragHandleHtml}
                             <div class="playlist-album-wrapper">
                                 <img src="${song.albumArtUrl}" alt="${song.title} album art">
                                 ${videoTagHtml}
@@ -1636,6 +1690,7 @@
                         `;
                         
                         songEl.addEventListener('click', (e) => {
+                            if (e.target.classList.contains('drag-handle')) return;
                             if (e.target.classList.contains('fav-icon')) {
                                 e.stopPropagation();
                                 toggleFavorite(song.url);
@@ -1682,6 +1737,121 @@
                         const playingImg = player.dom.playlistContainer.querySelector('.playlist-song.playing img');
                         if (playingImg) playingImg.classList.add('spinning');
                     }
+                    if (!isFiltered) setupDragReorder();
+                }
+
+                function setupDragReorder() {
+                    let dragState = null;
+
+                    function clearIndicators() {
+                        player.dom.playlistContainer.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+                            el.classList.remove('drag-over-top', 'drag-over-bottom');
+                        });
+                    }
+
+                    function onDragStart(e, songEl, idx) {
+                        if (dragState) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const touch = e.touches ? e.touches[0] : e;
+                        const rect = songEl.getBoundingClientRect();
+
+                        const ghost = songEl.cloneNode(true);
+                        ghost.classList.add('drag-ghost');
+                        ghost.classList.remove('dragging');
+                        ghost.style.width = rect.width + 'px';
+                        ghost.style.left = rect.left + 'px';
+                        ghost.style.top = rect.top + 'px';
+                        document.body.appendChild(ghost);
+
+                        songEl.classList.add('dragging');
+
+                        dragState = { index: idx, songEl, ghost, offsetY: touch.clientY - rect.top };
+
+                        document.addEventListener('mousemove', onDragMove);
+                        document.addEventListener('mouseup', onDragEnd);
+                        document.addEventListener('touchmove', onDragMove, { passive: false });
+                        document.addEventListener('touchend', onDragEnd);
+                    }
+
+                    function onDragMove(e) {
+                        if (!dragState) return;
+                        e.preventDefault();
+
+                        const touch = e.touches ? e.touches[0] : e;
+                        dragState.ghost.style.top = (touch.clientY - dragState.offsetY) + 'px';
+
+                        clearIndicators();
+
+                        const songs = player.dom.playlistContainer.querySelectorAll('.playlist-song:not(.dragging)');
+                        for (const el of songs) {
+                            const r = el.getBoundingClientRect();
+                            if (touch.clientY >= r.top && touch.clientY <= r.bottom) {
+                                el.classList.add(touch.clientY < r.top + r.height / 2 ? 'drag-over-top' : 'drag-over-bottom');
+                                break;
+                            }
+                        }
+
+                        const cr = player.dom.playlistContainer.getBoundingClientRect();
+                        const edge = 40;
+                        if (touch.clientY < cr.top + edge && touch.clientY > cr.top) {
+                            player.dom.playlistContainer.scrollTop -= 8;
+                        } else if (touch.clientY > cr.bottom - edge && touch.clientY < cr.bottom) {
+                            player.dom.playlistContainer.scrollTop += 8;
+                        }
+                    }
+
+                    function onDragEnd() {
+                        if (!dragState) return;
+
+                        document.removeEventListener('mousemove', onDragMove);
+                        document.removeEventListener('mouseup', onDragEnd);
+                        document.removeEventListener('touchmove', onDragMove);
+                        document.removeEventListener('touchend', onDragEnd);
+
+                        const overEl = player.dom.playlistContainer.querySelector('.drag-over-top, .drag-over-bottom');
+                        if (overEl) {
+                            const allSongs = [...player.dom.playlistContainer.querySelectorAll('.playlist-song')];
+                            let dropIdx = allSongs.indexOf(overEl);
+                            if (overEl.classList.contains('drag-over-bottom')) dropIdx++;
+                            if (dragState.index < dropIdx) dropIdx--;
+
+                            if (dragState.index !== dropIdx) {
+                                const currentUrl = player.playlist[player.currentTrack]?.url;
+                                const [moved] = player.playlist.splice(dragState.index, 1);
+                                player.playlist.splice(dropIdx, 0, moved);
+
+                                if (!player.isShuffle) player.originalPlaylist = [...player.playlist];
+
+                                if (currentUrl) {
+                                    player.currentTrack = player.playlist.findIndex(t => t.url === currentUrl);
+                                }
+
+                                localStorage.setItem('oss_music_player_order', JSON.stringify(player.playlist.map(t => t.url)));
+
+                                dragState.songEl.classList.remove('dragging');
+                                clearIndicators();
+                                dragState.ghost.remove();
+                                dragState = null;
+                                populatePlaylistModal();
+                                return;
+                            }
+                        }
+
+                        dragState.songEl.classList.remove('dragging');
+                        clearIndicators();
+                        dragState.ghost.remove();
+                        dragState = null;
+                    }
+
+                    const songEls = player.dom.playlistContainer.querySelectorAll('.playlist-song');
+                    songEls.forEach((songEl, idx) => {
+                        const handle = songEl.querySelector('.drag-handle');
+                        if (!handle) return;
+                        handle.addEventListener('mousedown', (e) => onDragStart(e, songEl, idx));
+                        handle.addEventListener('touchstart', (e) => onDragStart(e, songEl, idx), { passive: false });
+                    });
                 }
                 
                 if(player.dom.playlistBtn) player.dom.playlistBtn.addEventListener('click', togglePlaylistModal);
@@ -1786,6 +1956,20 @@
                                 player.dom.player.classList.remove('video-floating');
                             }
                         });
+                    }
+
+                    const savedOrder = JSON.parse(localStorage.getItem('oss_music_player_order') || 'null');
+                    if (savedOrder) {
+                        const reordered = [];
+                        for (const url of savedOrder) {
+                            const song = player.originalPlaylist.find(s => s.url === url);
+                            if (song) reordered.push(song);
+                        }
+                        for (const song of player.originalPlaylist) {
+                            if (!reordered.find(s => s.url === song.url)) reordered.push(song);
+                        }
+                        player.playlist = reordered;
+                        player.originalPlaylist = [...reordered];
                     }
 
                     const savedShuffle = localStorage.getItem('oss_music_player_isShuffle') === 'true';
